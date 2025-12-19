@@ -1,0 +1,39 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('module_user', function (Blueprint $table) {
+            $table->id();
+
+            $table->foreignId('module_id')
+                  ->constrained()
+                  ->cascadeOnDelete();
+
+            $table->foreignId('user_id')
+                  ->constrained()
+                  ->cascadeOnDelete();
+
+            // Required by assignment
+            $table->date('student_start_date')->nullable();
+            $table->date('completion_date')->nullable();
+
+            // PASS / FAIL
+            $table->enum('pass_fail', ['PASS', 'FAIL'])->nullable();
+
+            $table->timestamps();
+
+            // Prevent duplicate enrollment
+            $table->unique(['module_id', 'user_id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('module_user');
+    }
+};
