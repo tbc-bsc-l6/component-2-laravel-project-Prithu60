@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentEnrollmentController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
+use App\Http\Controllers\Teacher\ModuleController as TeacherModuleController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,3 +24,8 @@ Route::post('/admin/modules', [AdminModuleController::class, 'store'])
 Route::post('/admin/modules/{module}/assign-teacher', [AdminModuleController::class, 'assignTeacher'])
     ->middleware(['auth'])
     ->name('admin.modules.assignTeacher');
+
+//  GET request to fetch all modules assigned to the logged-in teacher
+Route::get('/teacher/modules', [TeacherModuleController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('teacher.modules.index');
