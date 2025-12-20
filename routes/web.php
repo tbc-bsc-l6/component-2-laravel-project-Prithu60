@@ -31,6 +31,10 @@ Route::post('/admin/modules/{module}/assign-teacher', [AdminModuleController::cl
     ->middleware(['auth'])
     ->name('admin.modules.assignTeacher');
 
+Route::post('/admin/modules/{module}/toggle-availability', [AdminModuleController::class, 'toggleAvailability'])
+    ->middleware(['auth'])
+    ->name('admin.modules.toggleAvailability');
+    
 //  GET request to fetch all modules assigned to the logged-in teacher
 Route::get('/teacher/modules', [TeacherModuleController::class, 'index'])
     ->middleware(['auth'])
