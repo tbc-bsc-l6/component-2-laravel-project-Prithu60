@@ -33,3 +33,7 @@ Route::get('/teacher/modules', [TeacherModuleController::class, 'index'])
 Route::get('/teacher/modules/{module}/students', [TeacherModuleController::class, 'students'])
     ->middleware(['auth'])
     ->name('teacher.modules.students');
+
+Route::post('/teacher/modules/{module}/result', [TeacherModuleController::class, 'setResult'])
+    ->middleware(['auth'])
+    ->name('teacher.modules.result');
