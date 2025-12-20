@@ -7,20 +7,31 @@ use Illuminate\Support\Facades\Auth;
 
 class ModuleController extends Controller
 {
-    /**
-     * Display modules assigned to the authenticated teacher
-     */
     public function index()
     {
-        // Ensure only teachers can access
         if (!Auth::check() || Auth::user()->role->name !== 'teacher') {
             abort(403);
         }
 
-        // Get modules assigned to this teacher
-        $modules = Auth::user()->teachingModules()->get();
+        return response()->json(
+            Auth::user()->teachingModules()->get()
+        );
+    }
 
-        // For now, return JSON (UI will come later)
-        return response()->json($modules);
+    public function students(int $moduleId)
+    {
+        if (!Auth::check() || Auth::user()->role->name !== 'teacher') {
+            abort(403);
+        }
+
+        $module = Auth::user()
+            ->teachingModules()
+            ->where('modules.id', $moduleId)
+            ->firstOrFail();
+
+        return response()->json([
+            'module' => $module->name,
+            'students' => $module->students()->get()
+        ]);
     }
 }

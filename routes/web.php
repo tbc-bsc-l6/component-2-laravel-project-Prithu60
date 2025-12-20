@@ -29,3 +29,7 @@ Route::post('/admin/modules/{module}/assign-teacher', [AdminModuleController::cl
 Route::get('/teacher/modules', [TeacherModuleController::class, 'index'])
     ->middleware(['auth'])
     ->name('teacher.modules.index');
+
+Route::get('/teacher/modules/{module}/students', [TeacherModuleController::class, 'students'])
+    ->middleware(['auth'])
+    ->name('teacher.modules.students');
