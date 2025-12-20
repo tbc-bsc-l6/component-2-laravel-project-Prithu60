@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentEnrollmentController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Teacher\ModuleController as TeacherModuleController;
+use App\Http\Controllers\Student\ModuleController as StudentModuleController;
 
 
 Route::get('/', function () {
@@ -14,6 +15,11 @@ Route::get('/', function () {
 Route::post('/modules/{module}/enroll', [StudentEnrollmentController::class, 'enroll'])
     ->middleware(['auth'])
     ->name('modules.enroll');
+
+Route::get('/student/modules/history', [StudentModuleController::class, 'history'])
+    ->middleware(['auth'])
+    ->name('student.modules.history');
+
 
 // Admin create module
 Route::post('/admin/modules', [AdminModuleController::class, 'store'])
