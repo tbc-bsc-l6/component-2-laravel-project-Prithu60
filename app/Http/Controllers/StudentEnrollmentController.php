@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Module;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class StudentEnrollmentController extends Controller
@@ -14,6 +13,11 @@ class StudentEnrollmentController extends Controller
     public function enroll(Module $module)
     {
         $student = Auth::user();
+
+        // Prevent old students from enrolling
+        if ($student->role->name === 'old_student') {
+            abort(403);
+        }
 
         // Safety: only students can enrol
         if ($student->role->name !== 'student') {
