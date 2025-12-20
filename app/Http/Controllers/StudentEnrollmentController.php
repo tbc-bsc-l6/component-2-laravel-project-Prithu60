@@ -19,6 +19,11 @@ class StudentEnrollmentController extends Controller
             abort(403);
         }
 
+        // Prevent enrolment if module is archived
+        if (!$module->available) {
+            return back()->withErrors('This module is currently unavailable for enrolment.');
+        }
+
         // Safety: only students can enrol
         if ($student->role->name !== 'student') {
             abort(403);
