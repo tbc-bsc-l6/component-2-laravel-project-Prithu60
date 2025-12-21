@@ -2,24 +2,39 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\UserRole;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(UserRoleSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $adminRole = UserRole::where('name', 'admin')->first();
+        $teacherRole = UserRole::where('name', 'teacher')->first();
+        $studentRole = UserRole::where('name', 'student')->first();
+
+        User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'user_role_id' => $adminRole->id,
+        ]);
+
+        User::create([
+            'name' => 'Teacher User',
+            'email' => 'teacher@example.com',
+            'password' => bcrypt('password'),
+            'user_role_id' => $teacherRole->id,
+        ]);
+
+        User::create([
+            'name' => 'Student User',
+            'email' => 'student@example.com',
+            'password' => bcrypt('password'),
+            'user_role_id' => $studentRole->id,
         ]);
     }
 }
