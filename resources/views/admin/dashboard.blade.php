@@ -1,6 +1,30 @@
 @extends('layouts.admin')
 
 @section('content')
+<!-- WELCOME BANNER -->
+<div class="relative mb-10">
+    <div class="flex items-center justify-between p-8 rounded-2xl shadow-lg
+                bg-gradient-to-r from-fuchsia-600 via-purple-600 to-pink-600
+                text-white">
+
+        <!-- Text -->
+        <div>
+            <h1 class="text-3xl font-bold">
+                Welcome to Admin Dashboard 👋
+            </h1>
+            <p class="mt-2 text-white/90">
+                Here’s what’s happening with your system today
+            </p>
+        </div>
+
+        <!-- Avatar / Icon -->
+        <div class="hidden md:flex items-center justify-center
+                    w-16 h-16 rounded-full bg-white/20 text-3xl">
+            🎓
+        </div>
+    </div>
+</div>
+
 
 <!-- PAGE TITLE -->
 <div class="mb-6">
