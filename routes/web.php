@@ -36,11 +36,11 @@ Route::get('/dashboard', function () {
     $role = auth()->user()?->role?->name;
 
     return match ($role) {
-        'admin' => redirect()->route('admin.dashboard'),
-        'teacher' => redirect()->route('teacher.dashboard'),
-        'student' => redirect()->route('student.dashboard'),
+        'admin'       => redirect()->route('admin.dashboard'),
+        'teacher'     => redirect()->route('teacher.dashboard'),
+        'student'     => redirect()->route('student.dashboard'),
         'old_student' => redirect()->route('student.modules.history'),
-        default => redirect('/'),
+        default       => redirect('/'),
     };
 })->middleware('auth')->name('dashboard');
 
@@ -79,6 +79,10 @@ Route::middleware(['auth', 'role:admin'])
         Route::patch('/modules/{module}/toggle', [AdminModuleController::class, 'toggle'])
             ->name('modules.toggle');
 
+        // ✅ VIEW STUDENTS OF A MODULE (THIS WAS MISSING)
+        Route::get('/modules/{module}/students', [AdminModuleController::class, 'students'])
+            ->name('modules.students');
+
         // Assign Teacher to Module
         Route::post('/modules/{module}/assign-teacher', [AdminModuleController::class, 'assignTeacher'])
             ->name('modules.assignTeacher');
@@ -93,10 +97,11 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/teachers/{user}', [TeacherController::class, 'destroy'])
             ->name('teachers.destroy');
 
-        // Students
+        // Students (global list)
         Route::get('/students', [AdminStudentController::class, 'index'])
             ->name('students.index');
 
+        // Remove student from module
         Route::delete('/students/{student}/remove/{module}', [AdminStudentController::class, 'removeFromModule'])
             ->name('students.removeFromModule');
     });

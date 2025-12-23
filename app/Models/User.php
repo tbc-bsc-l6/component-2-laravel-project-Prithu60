@@ -2,12 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Module;   // ✅ IMPORTANT
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\UserRole;
-
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -17,6 +15,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'user_role_id',
     ];
 
     protected $hidden = [
@@ -32,10 +31,22 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Modules this user teaches (TEACHER role)
-     */
-    public function teachingModules()
+    /*
+    |--------------------------------------------------------------------------
+    | ROLE
+    |--------------------------------------------------------------------------
+    */
+    public function role()
+    {
+        return $this->belongsTo(UserRole::class, 'user_role_id');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TEACHER: Modules they teach
+    |--------------------------------------------------------------------------
+    */
+    public function teachingModules(): BelongsToMany
     {
         return $this->belongsToMany(
             Module::class,
@@ -45,10 +56,49 @@ class User extends Authenticatable
         )->withTimestamps();
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | STUDENT: Modules they are enrolled in
+    |--------------------------------------------------------------------------
+    */
+    public function enrolledModules(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Module::class,
+            'module_user',
+            'user_id',
+            'module_id'
+        )->withPivot([
+            'student_start_date',
+            'completion_date',
+            'pass_fail',
+        ])
+        ->withTimestamps();
+    }
 
-public function role()
-{
-    return $this->belongsTo(UserRole::class, 'user_role_id');
-}
+    /*
+    |--------------------------------------------------------------------------
+    | STUDENT HELPERS (ASSIGNMENT LOGIC)
+    |--------------------------------------------------------------------------
+    */
 
+    // Active modules (not completed yet)
+    public function activeModules()
+    {
+        return $this->enrolledModules()
+            ->wherePivotNull('completion_date');
+    }
+
+    // Completed modules (history)
+    public function completedModules()
+    {
+        return $this->enrolledModules()
+            ->whereNotNull('completion_date');
+    }
+
+    // Can student enroll? (MAX 4 modules)
+    public function canEnroll(): bool
+    {
+        return $this->activeModules()->count() < 4;
+    }
 }

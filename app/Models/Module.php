@@ -13,15 +13,48 @@ class Module extends Model
         'is_active',
     ];
 
-    // Teacher assignment (pivot table already exists: module_teacher)
+    /*
+    |--------------------------------------------------------------------------
+    | Teachers assigned to module
+    |--------------------------------------------------------------------------
+    */
     public function teachers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'module_teacher');
+        return $this->belongsToMany(User::class, 'module_teacher')
+                    ->withTimestamps();
     }
 
-    // Student enrolments (pivot table already exists: module_user)
+    /*
+    |--------------------------------------------------------------------------
+    | Students enrolled in module (IMPORTANT)
+    |--------------------------------------------------------------------------
+    */
     public function students(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'module_user');
+        return $this->belongsToMany(User::class, 'module_user')
+                    ->withPivot([
+                        'student_start_date',
+                        'completion_date',
+                        'pass_fail',
+                    ])
+                    ->withTimestamps();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers (used everywhere)
+    |--------------------------------------------------------------------------
+    */
+
+    // How many students are currently enrolled
+    public function enrolledStudentsCount(): int
+    {
+        return $this->students()->count();
+    }
+
+    // Check if module is full (max 10 students)
+    public function isFull(): bool
+    {
+        return $this->enrolledStudentsCount() >= 10;
     }
 }

@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Module;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ModuleController extends Controller
 {
     public function index()
     {
-        $modules = Module::withCount('teachers')
+        $modules = Module::withCount(['teachers', 'students'])
             ->orderByDesc('created_at')
             ->get();
 
@@ -21,7 +22,7 @@ class ModuleController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
+            'description' => ['nullable', 'string'],
         ]);
 
         Module::create([
@@ -30,7 +31,8 @@ class ModuleController extends Controller
             'is_active' => true,
         ]);
 
-        return redirect()->route('admin.modules.index')->with('success', 'Module created successfully.');
+        return redirect()->route('admin.modules.index')
+            ->with('success', 'Module created successfully.');
     }
 
     public function edit(Module $module)
@@ -42,23 +44,23 @@ class ModuleController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
+            'description' => ['nullable', 'string'],
         ]);
 
         $module->update($validated);
 
-        return redirect()->route('admin.modules.index')->with('success', 'Module updated successfully.');
+        return redirect()->route('admin.modules.index')
+            ->with('success', 'Module updated successfully.');
     }
 
     public function destroy(Module $module)
     {
-        // optional safety: detach relationships so no constraint issues
         $module->teachers()->detach();
         $module->students()->detach();
-
         $module->delete();
 
-        return redirect()->route('admin.modules.index')->with('success', 'Module deleted successfully.');
+        return redirect()->route('admin.modules.index')
+            ->with('success', 'Module deleted successfully.');
     }
 
     public function toggle(Module $module)
@@ -67,6 +69,19 @@ class ModuleController extends Controller
             'is_active' => !$module->is_active,
         ]);
 
-        return redirect()->route('admin.modules.index')->with('success', 'Module status updated.');
+        return redirect()->route('admin.modules.index')
+            ->with('success', 'Module status updated.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VIEW STUDENTS IN MODULE (ADMIN)
+    |--------------------------------------------------------------------------
+    */
+    public function students(Module $module)
+    {
+        $students = $module->students()->with('role')->get();
+
+        return view('admin.modules.students', compact('module', 'students'));
     }
 }

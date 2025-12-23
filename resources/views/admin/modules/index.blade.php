@@ -21,9 +21,12 @@
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Module Name</label>
-            <input name="name" value="{{ old('name') }}"
-                   class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                   placeholder="e.g. Web Development">
+            <input
+                name="name"
+                value="{{ old('name') }}"
+                class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                placeholder="e.g. Web Development"
+            >
             @error('name')
                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
             @enderror
@@ -31,9 +34,12 @@
 
         <div>
             <label class="block text-sm font-medium text-gray-700">Description</label>
-            <textarea name="description" rows="3"
-                      class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      placeholder="Optional...">{{ old('description') }}</textarea>
+            <textarea
+                name="description"
+                rows="3"
+                class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                placeholder="Optional..."
+            >{{ old('description') }}</textarea>
             @error('description')
                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
             @enderror
@@ -76,19 +82,32 @@
 
                         <td class="px-4 py-3">
                             @if($module->is_active)
-                                <span class="inline-flex rounded-full bg-green-100 px-3 py-1 text-green-700">Active</span>
+                                <span class="inline-flex rounded-full bg-green-100 px-3 py-1 text-green-700">
+                                    Active
+                                </span>
                             @else
-                                <span class="inline-flex rounded-full bg-gray-200 px-3 py-1 text-gray-700">Archived</span>
+                                <span class="inline-flex rounded-full bg-gray-200 px-3 py-1 text-gray-700">
+                                    Archived
+                                </span>
                             @endif
                         </td>
 
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap gap-2">
+
+                                <!-- ✅ VIEW STUDENTS -->
+                                <a href="{{ route('admin.modules.students', $module) }}"
+                                   class="rounded-lg border px-3 py-1 hover:bg-gray-50">
+                                    Students
+                                </a>
+
+                                <!-- EDIT -->
                                 <a href="{{ route('admin.modules.edit', $module) }}"
                                    class="rounded-lg border px-3 py-1 hover:bg-gray-50">
                                     Edit
                                 </a>
 
+                                <!-- TOGGLE -->
                                 <form method="POST" action="{{ route('admin.modules.toggle', $module) }}">
                                     @csrf
                                     @method('PATCH')
@@ -97,20 +116,25 @@
                                     </button>
                                 </form>
 
-                                <form method="POST" action="{{ route('admin.modules.destroy', $module) }}"
-                                      onsubmit="return confirm('Delete this module? This will detach teachers/students too.')">
+                                <!-- DELETE -->
+                                <form
+                                    method="POST"
+                                    action="{{ route('admin.modules.destroy', $module) }}"
+                                    onsubmit="return confirm('Delete this module? This will detach teachers and students.')"
+                                >
                                     @csrf
                                     @method('DELETE')
                                     <button class="rounded-lg border border-red-200 px-3 py-1 text-red-700 hover:bg-red-50">
                                         Delete
                                     </button>
                                 </form>
+
                             </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td class="px-4 py-6 text-center text-gray-500" colspan="4">
+                        <td colspan="4" class="px-4 py-6 text-center text-gray-500">
                             No modules found
                         </td>
                     </tr>
