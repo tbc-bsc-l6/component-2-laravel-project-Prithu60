@@ -3,37 +3,35 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentEnrollmentController;
+
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
+
 use App\Http\Controllers\Teacher\ModuleController as TeacherModuleController;
 use App\Http\Controllers\Student\ModuleController as StudentModuleController;
-
-use App\Http\Controllers\Admin\ModuleController;
 
 /*
 |--------------------------------------------------------------------------
 | Public
 |--------------------------------------------------------------------------
 */
-
 Route::get('/', function () {
     return view('welcome');
 });
 
 /*
 |--------------------------------------------------------------------------
-| AUTH ROUTES (Breeze)
+| Auth (Breeze)
 |--------------------------------------------------------------------------
 */
 require __DIR__.'/auth.php';
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD REDIRECT (ROLE BASED)
+| Dashboard Redirect (Role Based)
 |--------------------------------------------------------------------------
 */
-
 Route::get('/dashboard', function () {
     $role = auth()->user()?->role?->name;
 
@@ -51,56 +49,63 @@ Route::get('/dashboard', function () {
 | ADMIN ROUTES (ADMIN ONLY)
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+        // Dashboard
+        Route::get('/dashboard', function () {
+            return view('admin.dashboard');
+        })->name('dashboard');
 
-    Route::resource('modules', ModuleController::class);
-});
+        // Modules CRUD
+        Route::get('/modules', [AdminModuleController::class, 'index'])
+            ->name('modules.index');
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+        Route::post('/modules', [AdminModuleController::class, 'store'])
+            ->name('modules.store');
 
-    // Dashboard
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+        Route::get('/modules/{module}/edit', [AdminModuleController::class, 'edit'])
+            ->name('modules.edit');
 
-    // Modules
-    Route::get('/admin/modules', [AdminModuleController::class, 'index'])
-        ->name('admin.modules.index');
+        Route::put('/modules/{module}', [AdminModuleController::class, 'update'])
+            ->name('modules.update');
 
-    Route::post('/admin/modules', [AdminModuleController::class, 'store'])
-        ->name('admin.modules.store');
+        Route::delete('/modules/{module}', [AdminModuleController::class, 'destroy'])
+            ->name('modules.destroy');
 
-    Route::post('/admin/modules/{module}/assign-teacher', [AdminModuleController::class, 'assignTeacher'])
-        ->name('admin.modules.assignTeacher');
+        // ✅ TOGGLE MODULE ACTIVE / ARCHIVE
+        Route::patch('/modules/{module}/toggle', [AdminModuleController::class, 'toggle'])
+            ->name('modules.toggle');
 
-    Route::post('/admin/modules/{module}/toggle-availability', [AdminModuleController::class, 'toggleAvailability'])
-        ->name('admin.modules.toggleAvailability');
+        // Assign Teacher to Module
+        Route::post('/modules/{module}/assign-teacher', [AdminModuleController::class, 'assignTeacher'])
+            ->name('modules.assignTeacher');
 
-    // Teachers
-    Route::get('/admin/teachers', [TeacherController::class, 'index'])
-        ->name('admin.teachers.index');
+        // Teachers
+        Route::get('/teachers', [TeacherController::class, 'index'])
+            ->name('teachers.index');
 
-    Route::post('/admin/teachers', [TeacherController::class, 'store'])
-        ->name('admin.teachers.store');
+        Route::post('/teachers', [TeacherController::class, 'store'])
+            ->name('teachers.store');
 
-    Route::delete('/admin/teachers/{user}', [TeacherController::class, 'destroy'])
-        ->name('admin.teachers.destroy');
+        Route::delete('/teachers/{user}', [TeacherController::class, 'destroy'])
+            ->name('teachers.destroy');
 
-    // Students
-    Route::get('/admin/students', [AdminStudentController::class, 'index'])
-        ->name('admin.students.index');
-});
+        // Students
+        Route::get('/students', [AdminStudentController::class, 'index'])
+            ->name('students.index');
+
+        Route::delete('/students/{student}/remove/{module}', [AdminStudentController::class, 'removeFromModule'])
+            ->name('students.removeFromModule');
+    });
 
 /*
 |--------------------------------------------------------------------------
 | TEACHER ROUTES
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth', 'role:teacher'])->group(function () {
 
     Route::get('/teacher/dashboard', function () {
@@ -122,7 +127,6 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
 | STUDENT ROUTES
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth', 'role:student,old_student'])->group(function () {
 
     Route::post('/modules/{module}/enroll', [StudentEnrollmentController::class, 'enroll'])
@@ -138,10 +142,9 @@ Route::middleware(['auth', 'role:student,old_student'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| PROFILE (REQUIRED BY BREEZE)
+| PROFILE (Breeze Requirement)
 |--------------------------------------------------------------------------
 */
-
 Route::middleware('auth')->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])

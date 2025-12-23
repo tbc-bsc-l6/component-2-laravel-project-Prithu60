@@ -2,40 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Module extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'name',
         'description',
-        'available',
+        'is_active',
     ];
 
-    /**
-     * Students enrolled in this module
-     */
-    public function students()
+    // Teacher assignment (pivot table already exists: module_teacher)
+    public function teachers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)
-            ->withPivot(['student_start_date', 'completion_date', 'pass_fail'])
-            ->withTimestamps();
+        return $this->belongsToMany(User::class, 'module_teacher');
     }
 
-    /**
-     * Teachers assigned to this module
-     */
-    public function teachers()
+    // Student enrolments (pivot table already exists: module_user)
+    public function students(): BelongsToMany
     {
-        return $this->belongsToMany(
-            User::class,
-            'module_teacher',
-            'module_id',
-            'user_id'
-        )->withTimestamps();
+        return $this->belongsToMany(User::class, 'module_user');
     }
 }

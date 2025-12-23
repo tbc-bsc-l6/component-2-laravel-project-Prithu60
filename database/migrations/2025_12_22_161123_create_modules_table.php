@@ -4,14 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateModulesTable extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('modules', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->boolean('is_active')->default(true); // archive/unarchive
+            $table->text('description')->nullable();
+            $table->boolean('is_active')->default(true); // available/unavailable (archive)
             $table->timestamps();
         });
     }
@@ -20,4 +20,4 @@ class CreateModulesTable extends Migration
     {
         Schema::dropIfExists('modules');
     }
-}
+};

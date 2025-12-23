@@ -8,65 +8,65 @@ use Illuminate\Http\Request;
 
 class ModuleController extends Controller
 {
-    /**
-     * Show all modules (Admin → Modules)
-     */
     public function index()
     {
-        $modules = Module::with('teachers')->get();
+        $modules = Module::withCount('teachers')
+            ->orderByDesc('created_at')
+            ->get();
 
         return view('admin.modules.index', compact('modules'));
     }
 
-    /**
-     * Store a newly created module
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
         ]);
 
         Module::create([
             'name' => $validated['name'],
-            'description' => $validated['description'],
-            'available' => true,
+            'description' => $validated['description'] ?? null,
+            'is_active' => true,
         ]);
 
-        return back()->with('success', 'Module created successfully.');
+        return redirect()->route('admin.modules.index')->with('success', 'Module created successfully.');
     }
 
-    /**
-     * Assign teacher to module
-     */
-    public function assignTeacher(Request $request, Module $module)
+    public function edit(Module $module)
     {
-        $request->validate([
-            'teacher_id' => 'required|exists:users,id',
-        ]);
-
-        $module->teachers()->syncWithoutDetaching([
-            $request->teacher_id,
-        ]);
-
-        return back()->with('success', 'Teacher assigned successfully.');
+        return view('admin.modules.edit', compact('module'));
     }
 
-    /**
-     * Toggle availability
-     */
-    public function toggleAvailability(Module $module)
+    public function update(Request $request, Module $module)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $module->update($validated);
+
+        return redirect()->route('admin.modules.index')->with('success', 'Module updated successfully.');
+    }
+
+    public function destroy(Module $module)
+    {
+        // optional safety: detach relationships so no constraint issues
+        $module->teachers()->detach();
+        $module->students()->detach();
+
+        $module->delete();
+
+        return redirect()->route('admin.modules.index')->with('success', 'Module deleted successfully.');
+    }
+
+    public function toggle(Module $module)
     {
         $module->update([
-            'available' => !$module->available,
+            'is_active' => !$module->is_active,
         ]);
 
-        return back()->with(
-            'success',
-            $module->available
-                ? 'Module is now available'
-                : 'Module has been archived'
-        );
+        return redirect()->route('admin.modules.index')->with('success', 'Module status updated.');
     }
 }

@@ -1,88 +1,122 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">
-            Manage Modules
-        </h2>
-    </x-slot>
+@extends('layouts.admin')
 
-    <div class="py-6 max-w-7xl mx-auto space-y-6">
+@section('content')
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Manage Modules</h1>
+    <p class="text-gray-500">Create modules, edit details, delete, and toggle availability.</p>
+</div>
 
-        <!-- Create Module -->
-        <div class="bg-white p-6 rounded shadow">
-            <h3 class="text-lg font-semibold mb-4">Add New Module</h3>
+@if(session('success'))
+    <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+        {{ session('success') }}
+    </div>
+@endif
 
-            <form method="POST" action="{{ route('admin.modules.store') }}">
-                @csrf
+<!-- Add Module -->
+<div class="bg-white rounded-xl shadow p-6 mb-8">
+    <h2 class="text-lg font-semibold mb-4">Add New Module</h2>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium">Module Name</label>
-                    <input type="text" name="name"
-                           class="w-full border rounded px-3 py-2"
-                           required>
-                </div>
+    <form method="POST" action="{{ route('admin.modules.store') }}" class="space-y-4">
+        @csrf
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium">Description</label>
-                    <textarea name="description"
-                              class="w-full border rounded px-3 py-2"></textarea>
-                </div>
-
-                <button class="bg-black text-white px-4 py-2 rounded">
-                    Create Module
-                </button>
-            </form>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Module Name</label>
+            <input name="name" value="{{ old('name') }}"
+                   class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                   placeholder="e.g. Web Development">
+            @error('name')
+                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+            @enderror
         </div>
 
-        <!-- Module List -->
-        <div class="bg-white p-6 rounded shadow">
-            <h3 class="text-lg font-semibold mb-4">All Modules</h3>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea name="description" rows="3"
+                      class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                      placeholder="Optional...">{{ old('description') }}</textarea>
+            @error('description')
+                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
 
-            <table class="w-full border">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border p-2">Name</th>
-                        <th class="border p-2">Teachers</th>
-                        <th class="border p-2">Status</th>
-                        <th class="border p-2">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <button class="inline-flex items-center rounded-lg bg-black px-4 py-2 text-white hover:bg-gray-800">
+            Create Module
+        </button>
+    </form>
+</div>
+
+<!-- All Modules -->
+<div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-semibold mb-4">All Modules</h2>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                    <th class="px-4 py-3 text-left font-semibold">Name</th>
+                    <th class="px-4 py-3 text-left font-semibold">Teachers</th>
+                    <th class="px-4 py-3 text-left font-semibold">Status</th>
+                    <th class="px-4 py-3 text-left font-semibold">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y">
                 @forelse($modules as $module)
                     <tr>
-                        <td class="border p-2">{{ $module->name }}</td>
-
-                        <td class="border p-2">
-                            @forelse($module->teachers as $teacher)
-                                <span class="block">{{ $teacher->name }}</span>
-                            @empty
-                                <span class="text-gray-500">No teacher</span>
-                            @endforelse
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">{{ $module->name }}</div>
+                            @if($module->description)
+                                <div class="text-gray-500">{{ $module->description }}</div>
+                            @endif
                         </td>
 
-                        <td class="border p-2">
-                            {{ $module->available ? 'Available' : 'Archived' }}
+                        <td class="px-4 py-3">
+                            {{ $module->teachers_count }}
                         </td>
 
-                        <td class="border p-2">
-                            <form method="POST"
-                                  action="{{ route('admin.modules.toggleAvailability', $module) }}">
-                                @csrf
-                                <button class="text-blue-600">
-                                    Toggle
-                                </button>
-                            </form>
+                        <td class="px-4 py-3">
+                            @if($module->is_active)
+                                <span class="inline-flex rounded-full bg-green-100 px-3 py-1 text-green-700">Active</span>
+                            @else
+                                <span class="inline-flex rounded-full bg-gray-200 px-3 py-1 text-gray-700">Archived</span>
+                            @endif
+                        </td>
+
+                        <td class="px-4 py-3">
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ route('admin.modules.edit', $module) }}"
+                                   class="rounded-lg border px-3 py-1 hover:bg-gray-50">
+                                    Edit
+                                </a>
+
+                                <form method="POST" action="{{ route('admin.modules.toggle', $module) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button class="rounded-lg border px-3 py-1 hover:bg-gray-50">
+                                        {{ $module->is_active ? 'Archive' : 'Unarchive' }}
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="{{ route('admin.modules.destroy', $module) }}"
+                                      onsubmit="return confirm('Delete this module? This will detach teachers/students too.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="rounded-lg border border-red-200 px-3 py-1 text-red-700 hover:bg-red-50">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center p-4">
+                        <td class="px-4 py-6 text-center text-gray-500" colspan="4">
                             No modules found
                         </td>
                     </tr>
                 @endforelse
-                </tbody>
-            </table>
-        </div>
-
+            </tbody>
+        </table>
     </div>
-</x-app-layout>
+</div>
+@endsection
