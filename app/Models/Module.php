@@ -10,12 +10,12 @@ class Module extends Model
     protected $fillable = [
         'name',
         'description',
-        'is_active',
+        'is_active', // module availability (archive toggle)
     ];
 
     /*
     |--------------------------------------------------------------------------
-    | Teachers assigned to module
+    | Teachers assigned to this module
     |--------------------------------------------------------------------------
     */
     public function teachers(): BelongsToMany
@@ -26,35 +26,43 @@ class Module extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Students enrolled in module (IMPORTANT)
+    | Students enrolled in this module (CORE RELATION)
     |--------------------------------------------------------------------------
     */
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'module_user')
                     ->withPivot([
-                        'student_start_date',
-                        'completion_date',
-                        'pass_fail',
+                        'enrolled_at',
+                        'status',        // ENROLLED | PASS | FAIL
+                        'completed_at',
                     ])
                     ->withTimestamps();
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Helpers (used everywhere)
+    | Helpers (used across Student / Teacher / Admin)
     |--------------------------------------------------------------------------
     */
 
-    // How many students are currently enrolled
+    // Count ONLY currently enrolled students
     public function enrolledStudentsCount(): int
     {
-        return $this->students()->count();
+        return $this->students()
+                    ->wherePivot('status', 'ENROLLED')
+                    ->count();
     }
 
-    // Check if module is full (max 10 students)
+    // Module capacity check (max 10)
     public function isFull(): bool
     {
         return $this->enrolledStudentsCount() >= 10;
+    }
+
+    // Check if module is available for enrollment
+    public function isAvailable(): bool
+    {
+        return $this->is_active && !$this->isFull();
     }
 }

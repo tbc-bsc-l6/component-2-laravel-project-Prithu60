@@ -58,45 +58,47 @@ class User extends Authenticatable
 
     /*
     |--------------------------------------------------------------------------
-    | STUDENT: Modules they are enrolled in
+    | STUDENT: Modules they are enrolled in (CORE RELATION)
     |--------------------------------------------------------------------------
+    | This is what controllers use: auth()->user()->modules()
     */
-    public function enrolledModules(): BelongsToMany
+    public function modules(): BelongsToMany
     {
         return $this->belongsToMany(
             Module::class,
             'module_user',
             'user_id',
             'module_id'
-        )->withPivot([
-            'student_start_date',
-            'completion_date',
-            'pass_fail',
+        )
+        ->withPivot([
+            'enrolled_at',
+            'status',        // ENROLLED | PASS | FAIL
+            'completed_at',
         ])
         ->withTimestamps();
     }
 
     /*
     |--------------------------------------------------------------------------
-    | STUDENT HELPERS (ASSIGNMENT LOGIC)
+    | STUDENT HELPERS (ASSIGNMENT RULES)
     |--------------------------------------------------------------------------
     */
 
-    // Active modules (not completed yet)
+    // Active modules (currently enrolled, not completed)
     public function activeModules()
     {
-        return $this->enrolledModules()
-            ->wherePivotNull('completion_date');
+        return $this->modules()
+            ->wherePivot('status', 'ENROLLED');
     }
 
-    // Completed modules (history)
+    // Completed modules (PASS / FAIL history)
     public function completedModules()
     {
-        return $this->enrolledModules()
-            ->whereNotNull('completion_date');
+        return $this->modules()
+            ->wherePivotIn('status', ['PASS', 'FAIL']);
     }
 
-    // Can student enroll? (MAX 4 modules)
+    // Can student enroll? (MAX 4 active modules)
     public function canEnroll(): bool
     {
         return $this->activeModules()->count() < 4;
