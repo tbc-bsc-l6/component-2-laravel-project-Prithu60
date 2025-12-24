@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -15,73 +16,98 @@ new #[Layout('layouts.guest')] class extends Component
     public string $password = '';
     public string $password_confirmation = '';
 
-    /**
-     * Handle an incoming registration request.
-     */
     public function register(): void
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // Hash password
         $validated['password'] = Hash::make($validated['password']);
 
-        event(new Registered($user = User::create($validated)));
+        // Assign STUDENT role (must exist in user_roles table)
+        $studentRole = UserRole::where('name', 'student')->firstOrFail();
+        $validated['user_role_id'] = $studentRole->id;
 
+        // Create user
+        $user = User::create($validated);
+        event(new Registered($user));
+
+        // IMPORTANT: ensure clean session (fixes admin → student issue)
+        Auth::logout();
         Auth::login($user);
 
-        $this->redirect(route('dashboard', absolute: false), navigate: true);
+        // Redirect WITHOUT route() or navigate:true
+        $this->redirect('/dashboard');
     }
-}; ?>
+};
+?>
 
 <div>
-    <form wire:submit="register">
+    <form wire:submit.prevent="register" class="space-y-4">
+
         <!-- Name -->
         <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" class="block mt-1 w-full" type="text" name="name" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+            <x-input-label for="name" value="Name" />
+            <x-text-input
+                wire:model="name"
+                id="name"
+                type="text"
+                class="block mt-1 w-full"
+                required
+                autofocus
+            />
+            <x-input-error :messages="$errors->get('name')" />
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <!-- Email -->
+        <div>
+            <x-input-label for="email" value="Email" />
+            <x-text-input
+                wire:model="email"
+                id="email"
+                type="email"
+                class="block mt-1 w-full"
+                required
+            />
+            <x-input-error :messages="$errors->get('email')" />
         </div>
 
         <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input wire:model="password" id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div>
+            <x-input-label for="password" value="Password" />
+            <x-text-input
+                wire:model="password"
+                id="password"
+                type="password"
+                class="block mt-1 w-full"
+                required
+            />
+            <x-input-error :messages="$errors->get('password')" />
         </div>
 
         <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        <div>
+            <x-input-label for="password_confirmation" value="Confirm Password" />
+            <x-text-input
+                wire:model="password_confirmation"
+                id="password_confirmation"
+                type="password"
+                class="block mt-1 w-full"
+                required
+            />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}" wire:navigate>
-                {{ __('Already registered?') }}
+        <!-- Actions -->
+        <div class="flex items-center justify-end">
+            <a href="{{ route('login') }}" class="text-sm underline text-gray-600 hover:text-gray-900">
+                Already registered?
             </a>
 
             <x-primary-button class="ms-4">
-                {{ __('Register') }}
+                Register
             </x-primary-button>
         </div>
     </form>

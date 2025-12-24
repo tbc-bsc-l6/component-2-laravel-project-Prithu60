@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 
 use App\Http\Controllers\Teacher\ModuleController as TeacherModuleController;
 use App\Http\Controllers\Student\ModuleController as StudentModuleController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,14 +23,23 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Auth (Breeze)
+| Auth (Breeze / Livewire)
 |--------------------------------------------------------------------------
 */
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 /*
 |--------------------------------------------------------------------------
-| Dashboard Redirect (Role Based)
+| Logout
+|--------------------------------------------------------------------------
+*/
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->name('logout')
+    ->middleware('auth');
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard Redirect (ROLE BASED)
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
@@ -46,7 +56,7 @@ Route::get('/dashboard', function () {
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN ROUTES (ADMIN ONLY)
+| ADMIN ROUTES
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin'])
@@ -54,54 +64,27 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
 
-        // Dashboard
         Route::get('/dashboard', function () {
             return view('admin.dashboard');
         })->name('dashboard');
 
-        // Modules CRUD
-        Route::get('/modules', [AdminModuleController::class, 'index'])
-            ->name('modules.index');
-
-        Route::post('/modules', [AdminModuleController::class, 'store'])
-            ->name('modules.store');
-
-        Route::get('/modules/{module}/edit', [AdminModuleController::class, 'edit'])
-            ->name('modules.edit');
-
-        Route::put('/modules/{module}', [AdminModuleController::class, 'update'])
-            ->name('modules.update');
-
-        Route::delete('/modules/{module}', [AdminModuleController::class, 'destroy'])
-            ->name('modules.destroy');
-
-        // ✅ TOGGLE MODULE ACTIVE / ARCHIVE
-        Route::patch('/modules/{module}/toggle', [AdminModuleController::class, 'toggle'])
-            ->name('modules.toggle');
-
-        // ✅ VIEW STUDENTS OF A MODULE (THIS WAS MISSING)
-        Route::get('/modules/{module}/students', [AdminModuleController::class, 'students'])
-            ->name('modules.students');
-
-        // Assign Teacher to Module
-        Route::post('/modules/{module}/assign-teacher', [AdminModuleController::class, 'assignTeacher'])
-            ->name('modules.assignTeacher');
+        // Modules
+        Route::get('/modules', [AdminModuleController::class, 'index'])->name('modules.index');
+        Route::post('/modules', [AdminModuleController::class, 'store'])->name('modules.store');
+        Route::get('/modules/{module}/edit', [AdminModuleController::class, 'edit'])->name('modules.edit');
+        Route::put('/modules/{module}', [AdminModuleController::class, 'update'])->name('modules.update');
+        Route::delete('/modules/{module}', [AdminModuleController::class, 'destroy'])->name('modules.destroy');
+        Route::patch('/modules/{module}/toggle', [AdminModuleController::class, 'toggle'])->name('modules.toggle');
+        Route::get('/modules/{module}/students', [AdminModuleController::class, 'students'])->name('modules.students');
+        Route::post('/modules/{module}/assign-teacher', [AdminModuleController::class, 'assignTeacher'])->name('modules.assignTeacher');
 
         // Teachers
-        Route::get('/teachers', [TeacherController::class, 'index'])
-            ->name('teachers.index');
+        Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
+        Route::post('/teachers', [TeacherController::class, 'store'])->name('teachers.store');
+        Route::delete('/teachers/{user}', [TeacherController::class, 'destroy'])->name('teachers.destroy');
 
-        Route::post('/teachers', [TeacherController::class, 'store'])
-            ->name('teachers.store');
-
-        Route::delete('/teachers/{user}', [TeacherController::class, 'destroy'])
-            ->name('teachers.destroy');
-
-        // Students (global list)
-        Route::get('/students', [AdminStudentController::class, 'index'])
-            ->name('students.index');
-
-        // Remove student from module
+        // Students
+        Route::get('/students', [AdminStudentController::class, 'index'])->name('students.index');
         Route::delete('/students/{student}/remove/{module}', [AdminStudentController::class, 'removeFromModule'])
             ->name('students.removeFromModule');
     });
@@ -134,30 +117,25 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
 */
 Route::middleware(['auth', 'role:student,old_student'])->group(function () {
 
+    Route::get('/student/dashboard', function () {
+        return view('student.dashboard');
+    })->name('student.dashboard');
+
     Route::post('/modules/{module}/enroll', [StudentEnrollmentController::class, 'enroll'])
         ->name('modules.enroll');
 
     Route::get('/student/modules/history', [StudentModuleController::class, 'history'])
         ->name('student.modules.history');
-
-    Route::get('/student/dashboard', function () {
-        return view('student.dashboard');
-    })->name('student.dashboard');
 });
 
 /*
 |--------------------------------------------------------------------------
-| PROFILE (Breeze Requirement)
+| PROFILE (Breeze)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
 
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile');
-
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
-
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
