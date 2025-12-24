@@ -89,6 +89,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/students', [AdminStudentController::class, 'index'])->name('students.index');
         Route::delete('/students/{student}/remove/{module}', [AdminStudentController::class, 'removeFromModule'])
             ->name('students.removeFromModule');
+        Route::patch('/students/{student}/role', [AdminStudentController::class, 'updateRole'])
+            ->name('students.updateRole');
+
     });
 
 /*
