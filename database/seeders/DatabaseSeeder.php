@@ -10,11 +10,13 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Seed roles first
         $this->call(UserRoleSeeder::class);
 
-        $adminRole = UserRole::where('name', 'admin')->first();
-        $teacherRole = UserRole::where('name', 'teacher')->first();
-        $studentRole = UserRole::where('name', 'student')->first();
+        // FIX: use `role` column (NOT `name`)
+        $adminRole = UserRole::where('role', 'admin')->first();
+        $teacherRole = UserRole::where('role', 'teacher')->first();
+        $studentRole = UserRole::where('role', 'student')->first();
 
         User::create([
             'name' => 'Admin User',
