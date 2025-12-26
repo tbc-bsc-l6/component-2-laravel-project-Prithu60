@@ -49,12 +49,14 @@ class User extends Authenticatable
     public function teachingModules(): BelongsToMany
     {
         return $this->belongsToMany(
-            Module::class,
-            'module_teacher',
-            'user_id',
-            'module_id'
-        )->withTimestamps();
+        Module::class,
+        'module_teacher',
+        'teacher_id',  // ✅ FIXED
+        'module_id'
+        )
+        ->withTimestamps();
     }
+
 
     /*
     |--------------------------------------------------------------------------

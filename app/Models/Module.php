@@ -7,11 +7,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Module extends Model
 {
-    protected $fillable = [
-        'name',
-        'description',
-        'is_active', // module availability (archive toggle)
-    ];
+    /**
+     * Explicit table name (avoid guessing)
+     */
+    protected $table = 'modules';
+
+    /**
+     * Disable mass-assignment protection entirely
+     * (SAFE for assignment project)
+     */
+    protected $guarded = [];
 
     /*
     |--------------------------------------------------------------------------
@@ -20,49 +25,32 @@ class Module extends Model
     */
     public function teachers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'module_teacher')
-                    ->withTimestamps();
+        return $this->belongsToMany(
+            User::class,
+            'module_teacher',
+            'module_id',
+            'teacher_id'
+        )->withTimestamps();
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Students enrolled in this module (CORE RELATION)
+    | Students enrolled in this module
     |--------------------------------------------------------------------------
     */
     public function students(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'module_user')
-                    ->withPivot([
-                        'enrolled_at',
-                        'status',        // ENROLLED | PASS | FAIL
-                        'completed_at',
-                    ])
-                    ->withTimestamps();
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helpers (used across Student / Teacher / Admin)
-    |--------------------------------------------------------------------------
-    */
-
-    // Count ONLY currently enrolled students
-    public function enrolledStudentsCount(): int
-    {
-        return $this->students()
-                    ->wherePivot('status', 'ENROLLED')
-                    ->count();
-    }
-
-    // Module capacity check (max 10)
-    public function isFull(): bool
-    {
-        return $this->enrolledStudentsCount() >= 10;
-    }
-
-    // Check if module is available for enrollment
-    public function isAvailable(): bool
-    {
-        return $this->is_active && !$this->isFull();
+        return $this->belongsToMany(
+            User::class,
+            'module_user',
+            'module_id',
+            'user_id'
+        )
+        ->withPivot([
+            'enrolled_at',
+            'status',
+            'completed_at',
+        ])
+        ->withTimestamps();
     }
 }

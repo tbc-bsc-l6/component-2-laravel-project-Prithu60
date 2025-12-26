@@ -4,27 +4,36 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('module_teacher', function (Blueprint $table) {
             $table->id();
 
+            // Module reference
             $table->foreignId('module_id')
                   ->constrained()
                   ->cascadeOnDelete();
 
-            $table->foreignId('user_id')
-                  ->constrained()
+            // Teacher reference (user with teacher role)
+            $table->foreignId('teacher_id')
+                  ->constrained('users')
                   ->cascadeOnDelete();
 
             $table->timestamps();
 
-            // Prevent assigning same teacher twice
-            $table->unique(['module_id', 'user_id']);
+            // Prevent assigning the same teacher to the same module twice
+            $table->unique(['module_id', 'teacher_id']);
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('module_teacher');
