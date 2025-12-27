@@ -42,16 +42,17 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
-    $role = auth()->user()?->role?->name;
+    $role = auth()->user()->role->role;
 
     return match ($role) {
         'admin'       => redirect()->route('admin.dashboard'),
         'teacher'     => redirect()->route('teacher.dashboard'),
         'student'     => redirect()->route('student.dashboard'),
         'old_student' => redirect()->route('student.history'),
-        default       => redirect('/'),
+        default       => abort(403),
     };
 })->middleware('auth')->name('dashboard');
+
 
 /*
 |--------------------------------------------------------------------------

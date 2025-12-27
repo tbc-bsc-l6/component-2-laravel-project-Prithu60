@@ -7,6 +7,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+// ✅ REQUIRED IMPORTS
+use App\Models\UserRole;
+use App\Models\Module;
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -23,18 +27,16 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    // ✅ USE PROPERTY, NOT METHOD
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
     /*
-    |--------------------------------------------------------------------------
+    |------------------------------------------------------------------
     | ROLE
-    |--------------------------------------------------------------------------
+    |------------------------------------------------------------------
     */
     public function role()
     {
@@ -42,27 +44,24 @@ class User extends Authenticatable
     }
 
     /*
-    |--------------------------------------------------------------------------
+    |------------------------------------------------------------------
     | TEACHER: Modules they teach
-    |--------------------------------------------------------------------------
+    |------------------------------------------------------------------
     */
     public function teachingModules(): BelongsToMany
     {
         return $this->belongsToMany(
-        Module::class,
-        'module_teacher',
-        'teacher_id',  // ✅ FIXED
-        'module_id'
-        )
-        ->withTimestamps();
+            Module::class,
+            'module_teacher',
+            'teacher_id',   // user_id of teacher
+            'module_id'
+        )->withTimestamps();
     }
 
-
     /*
-    |--------------------------------------------------------------------------
-    | STUDENT: Modules they are enrolled in (CORE RELATION)
-    |--------------------------------------------------------------------------
-    | This is what controllers use: auth()->user()->modules()
+    |------------------------------------------------------------------
+    | STUDENT: Modules enrolled
+    |------------------------------------------------------------------
     */
     public function modules(): BelongsToMany
     {
@@ -81,26 +80,23 @@ class User extends Authenticatable
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | STUDENT HELPERS (ASSIGNMENT RULES)
-    |--------------------------------------------------------------------------
+    |------------------------------------------------------------------
+    | STUDENT HELPERS
+    |------------------------------------------------------------------
     */
 
-    // Active modules (currently enrolled, not completed)
     public function activeModules()
     {
         return $this->modules()
             ->wherePivot('status', 'ENROLLED');
     }
 
-    // Completed modules (PASS / FAIL history)
     public function completedModules()
     {
         return $this->modules()
             ->wherePivotIn('status', ['PASS', 'FAIL']);
     }
 
-    // Can student enroll? (MAX 4 active modules)
     public function canEnroll(): bool
     {
         return $this->activeModules()->count() < 4;

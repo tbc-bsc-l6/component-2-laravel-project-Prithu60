@@ -13,21 +13,21 @@ class ModuleController extends Controller
      */
     public function index()
     {
-        if (!Auth::check() || Auth::user()->role->name !== 'teacher') {
-            abort(403);
+        if (!Auth::check() || Auth::user()->role->role !== 'teacher') {
+        abort(403);
         }
 
-        return response()->json(
-            Auth::user()->teachingModules()->get()
-        );
-    }
+        $modules = Auth::user()->teachingModules()->get();
+
+        return view('teacher.modules.index', compact('modules'));
+}
 
     /**
      * View students enrolled in a specific module
      */
     public function students(int $moduleId)
     {
-        if (!Auth::check() || Auth::user()->role->name !== 'teacher') {
+        if (!Auth::check() || Auth::user()->role->role !== 'teacher') {
             abort(403);
         }
 
@@ -37,8 +37,8 @@ class ModuleController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'module' => $module->name,
-            'students' => $module->students()->get()
+            'module'   => $module->module, // ✅ fixed
+            'students' => $module->students()->get(),
         ]);
     }
 
@@ -47,13 +47,13 @@ class ModuleController extends Controller
      */
     public function setResult(Request $request, int $moduleId)
     {
-        if (!Auth::check() || Auth::user()->role->name !== 'teacher') {
+        if (!Auth::check() || Auth::user()->role->role !== 'teacher') {
             abort(403);
         }
 
         $validated = $request->validate([
             'student_id' => 'required|exists:users,id',
-            'result' => 'required|in:PASS,FAIL',
+            'result'     => 'required|in:PASS,FAIL',
         ]);
 
         $module = Auth::user()
@@ -64,8 +64,8 @@ class ModuleController extends Controller
         $module->students()->updateExistingPivot(
             $validated['student_id'],
             [
-                'pass_fail' => $validated['result'],
-                'completion_date' => now(),
+                'status'       => $validated['result'], // ✅ fixed
+                'completed_at' => now(),                 // ✅ fixed
             ]
         );
 
