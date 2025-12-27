@@ -19,9 +19,9 @@ class Module extends Model
     protected $guarded = [];
 
     /*
-    |--------------------------------------------------------------------------
+    |----------------------------------------------------------------------
     | Teachers assigned to this module
-    |--------------------------------------------------------------------------
+    |----------------------------------------------------------------------
     */
     public function teachers(): BelongsToMany
     {
@@ -34,9 +34,9 @@ class Module extends Model
     }
 
     /*
-    |--------------------------------------------------------------------------
+    |----------------------------------------------------------------------
     | Students enrolled in this module
-    |--------------------------------------------------------------------------
+    |----------------------------------------------------------------------
     */
     public function students(): BelongsToMany
     {
@@ -52,5 +52,27 @@ class Module extends Model
             'completed_at',
         ])
         ->withTimestamps();
+    }
+
+    /*
+    |----------------------------------------------------------------------
+    | Count currently enrolled students (status = ENROLLED)
+    |----------------------------------------------------------------------
+    */
+    public function enrolledStudentsCount(): int
+    {
+        return $this->students()
+            ->wherePivot('status', 'ENROLLED')
+            ->count();
+    }
+
+    /*
+    |----------------------------------------------------------------------
+    | Check if module has reached maximum student capacity (10)
+    |----------------------------------------------------------------------
+    */
+    public function isFull(): bool
+    {
+        return $this->enrolledStudentsCount() >= 10;
     }
 }
