@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Module;
+use App\Models\User;
 
 class ModuleController extends Controller
 {
@@ -13,62 +13,52 @@ class ModuleController extends Controller
      */
     public function index()
     {
-        if (!Auth::check() || Auth::user()->role->role !== 'teacher') {
-        abort(403);
-        }
-
-        $modules = Auth::user()->teachingModules()->get();
+        $modules = auth()->user()->teachingModules()->get();
 
         return view('teacher.modules.index', compact('modules'));
-}
+    }
 
     /**
      * View students enrolled in a specific module
      */
-    public function students(int $moduleId)
+    public function show(Module $module)
     {
-        if (!Auth::check() || Auth::user()->role->role !== 'teacher') {
-            abort(403);
-        }
+        // Ensure teacher is assigned to this module
+        abort_unless(
+            $module->teachers()->where('users.id', auth()->id())->exists(),
+            403
+        );
 
-        $module = Auth::user()
-            ->teachingModules()
-            ->where('modules.id', $moduleId)
-            ->firstOrFail();
+        $students = $module->students()
+            ->wherePivot('status', 'ENROLLED')
+            ->get();
 
-        return response()->json([
-            'module'   => $module->module, // ✅ fixed
-            'students' => $module->students()->get(),
-        ]);
+        return view('teacher.modules.show', compact('module', 'students'));
     }
 
     /**
-     * Set PASS / FAIL for a student in a module
+     * Mark student as PASS
      */
-    public function setResult(Request $request, int $moduleId)
+    public function pass(Module $module, User $student)
     {
-        if (!Auth::check() || Auth::user()->role->role !== 'teacher') {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'student_id' => 'required|exists:users,id',
-            'result'     => 'required|in:PASS,FAIL',
+        $module->students()->updateExistingPivot($student->id, [
+            'status'       => 'PASS',
+            'completed_at' => now(),
         ]);
 
-        $module = Auth::user()
-            ->teachingModules()
-            ->where('modules.id', $moduleId)
-            ->firstOrFail();
+        return back()->with('success', 'Student marked as PASS');
+    }
 
-        $module->students()->updateExistingPivot(
-            $validated['student_id'],
-            [
-                'status'       => $validated['result'], // ✅ fixed
-                'completed_at' => now(),                 // ✅ fixed
-            ]
-        );
+    /**
+     * Mark student as FAIL
+     */
+    public function fail(Module $module, User $student)
+    {
+        $module->students()->updateExistingPivot($student->id, [
+            'status'       => 'FAIL',
+            'completed_at' => now(),
+        ]);
 
-        return back()->with('success', 'Result recorded successfully.');
+        return back()->with('success', 'Student marked as FAIL');
     }
 }
