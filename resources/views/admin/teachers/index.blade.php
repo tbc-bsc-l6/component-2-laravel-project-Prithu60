@@ -3,12 +3,24 @@
 @section('content')
 
 {{-- PAGE HEADER --}}
-<div class="mb-8">
-    <div class="rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6 shadow text-white">
-        <h1 class="text-2xl font-bold">Manage Teachers</h1>
-        <p class="text-white/80 mt-1">
-            Create teachers and optionally assign modules
-        </p>
+<div class="mb-6">
+    <div class="rounded-2xl p-5 shadow-md
+                bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600
+                text-white flex items-center justify-between">
+
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
+                👩‍🏫 Manage Teachers
+            </h1>
+            <p class="text-white/80 text-sm mt-1">
+                Create teachers and optionally assign modules
+            </p>
+        </div>
+
+        <div class="hidden sm:flex gap-2">
+            <span class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">🎓</span>
+            <span class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">📚</span>
+        </div>
     </div>
 </div>
 
@@ -21,7 +33,7 @@
 
 @if($errors->any())
     <div class="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-red-800">
-        <ul class="list-disc pl-5">
+        <ul class="list-disc pl-5 space-y-1">
             @foreach($errors->all() as $err)
                 <li>{{ $err }}</li>
             @endforeach
@@ -30,16 +42,17 @@
 @endif
 
 {{-- CREATE TEACHER --}}
-<div class="bg-white rounded-2xl shadow p-6 mb-10 max-w-3xl">
+<div class="bg-white rounded-2xl shadow-sm border border-indigo-100
+            p-5 mb-10 max-w-2xl">
 
     <h2 class="text-lg font-semibold text-gray-900 mb-1">
         Add New Teacher
     </h2>
-    <p class="text-sm text-gray-500 mb-6">
+    <p class="text-sm text-gray-500 mb-5">
         Fill teacher details. Module assignment is optional.
     </p>
 
-    <form method="POST" action="{{ route('admin.teachers.store') }}" class="space-y-5">
+    <form method="POST" action="{{ route('admin.teachers.store') }}" class="space-y-4">
         @csrf
 
         {{-- NAME --}}
@@ -77,10 +90,10 @@
         </div>
 
         {{-- ASSIGN MODULES DROPDOWN --}}
-        <details class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <summary class="cursor-pointer font-medium text-gray-800 flex items-center justify-between">
+        <details class="rounded-xl border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3">
+            <summary class="cursor-pointer font-medium text-indigo-700 flex items-center justify-between">
                 <span>Assign Modules (optional)</span>
-                <span class="text-sm text-gray-500">▼</span>
+                <span class="text-sm">▼</span>
             </summary>
 
             <div class="mt-4 space-y-3">
@@ -110,9 +123,10 @@
         </details>
 
         {{-- SUBMIT --}}
-        <div class="pt-4">
+        <div class="pt-3">
             <button
-                class="w-full sm:w-auto rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600
+                class="w-full sm:w-auto rounded-xl
+                       bg-gradient-to-r from-indigo-600 to-purple-600
                        px-6 py-3 text-white font-semibold shadow hover:opacity-90">
                 Create Teacher
             </button>
