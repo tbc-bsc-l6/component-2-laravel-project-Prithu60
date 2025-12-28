@@ -16,10 +16,17 @@ use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 
 /*
 |--------------------------------------------------------------------------
-| TEACHER & STUDENT CONTROLLERS
+| TEACHER CONTROLLERS
 |--------------------------------------------------------------------------
 */
+use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\ModuleController as TeacherModuleController;
+
+/*
+|--------------------------------------------------------------------------
+| STUDENT CONTROLLERS
+|--------------------------------------------------------------------------
+*/
 use App\Http\Controllers\Student\ModuleController as StudentModuleController;
 
 /*
@@ -33,7 +40,7 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Auth (Breeze)
+| Auth (Breeze / Livewire)
 |--------------------------------------------------------------------------
 */
 require __DIR__ . '/auth.php';
@@ -72,11 +79,11 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
 
-        // ✅ ADMIN DASHBOARD (DATA COMES FROM CONTROLLER)
+        // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
 
-        // Modules CRUD
+        // Modules
         Route::get('/modules', [AdminModuleController::class, 'index'])
             ->name('modules.index');
 
@@ -98,15 +105,11 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/modules/{module}/students', [AdminModuleController::class, 'students'])
             ->name('modules.students');
 
-        Route::get(
-            '/modules/{module}/assign-teachers',
-            [AdminModuleController::class, 'assignTeachers']
-        )->name('modules.assign-teachers');
+        Route::get('/modules/{module}/assign-teachers', [AdminModuleController::class, 'assignTeachers'])
+            ->name('modules.assign-teachers');
 
-        Route::post(
-            '/modules/{module}/assign-teachers',
-            [AdminModuleController::class, 'storeTeachers']
-        )->name('modules.assign-teachers.store');
+        Route::post('/modules/{module}/assign-teachers', [AdminModuleController::class, 'storeTeachers'])
+            ->name('modules.assign-teachers.store');
 
         // Teachers
         Route::get('/teachers', [TeacherController::class, 'index'])
@@ -118,25 +121,19 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/teachers/{user}', [TeacherController::class, 'destroy'])
             ->name('teachers.destroy');
 
-        // Students (current)
+        // Students
         Route::get('/students', [AdminStudentController::class, 'index'])
             ->name('students.index');
 
-        Route::patch(
-            '/students/{student}/role',
-            [AdminStudentController::class, 'updateRole']
-        )->name('students.updateRole');
+        Route::patch('/students/{student}/role', [AdminStudentController::class, 'updateRole'])
+            ->name('students.updateRole');
 
-        Route::delete(
-            '/students/{student}/remove/{module}',
-            [AdminStudentController::class, 'removeFromModule']
-        )->name('students.removeFromModule');
+        Route::delete('/students/{student}/remove/{module}', [AdminStudentController::class, 'removeFromModule'])
+            ->name('students.removeFromModule');
 
-        // Old students (admin view)
-        Route::get(
-            '/old-students',
-            [AdminStudentController::class, 'oldStudents']
-        )->name('old-students.index');
+        // Old students
+        Route::get('/old-students', [AdminStudentController::class, 'oldStudents'])
+            ->name('old-students.index');
     });
 
 /*
@@ -149,22 +146,23 @@ Route::middleware(['auth', 'role:teacher'])
     ->name('teacher.')
     ->group(function () {
 
-        Route::get('/dashboard', fn () => view('teacher.dashboard'))
+        // ✅ Teacher Dashboard (controller-based)
+        Route::get('/dashboard', [TeacherDashboardController::class, 'index'])
             ->name('dashboard');
 
+        // Teacher modules
         Route::get('/modules', [TeacherModuleController::class, 'index'])
             ->name('modules.index');
 
         Route::get('/modules/{module}', [TeacherModuleController::class, 'show'])
             ->name('modules.show');
 
-        Route::post(
-            '/modules/{module}/students/{student}/pass',
+        // PASS / FAIL
+        Route::post('/modules/{module}/students/{student}/pass',
             [TeacherModuleController::class, 'pass']
         )->name('modules.students.pass');
 
-        Route::post(
-            '/modules/{module}/students/{student}/fail',
+        Route::post('/modules/{module}/students/{student}/fail',
             [TeacherModuleController::class, 'fail']
         )->name('modules.students.fail');
     });
@@ -182,10 +180,8 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/dashboard', [StudentModuleController::class, 'dashboard'])
             ->name('dashboard');
 
-        Route::post(
-            '/modules/{module}/enroll',
-            [StudentModuleController::class, 'enroll']
-        )->name('modules.enroll');
+        Route::post('/modules/{module}/enroll', [StudentModuleController::class, 'enroll'])
+            ->name('modules.enroll');
     });
 
 /*
@@ -208,6 +204,7 @@ Route::middleware(['auth', 'role:old_student'])
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile');
 

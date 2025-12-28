@@ -1,83 +1,92 @@
-<x-teacher-layout>
-    <x-slot name="header">
-        {{ $module->name }} — Enrolled Students
-    </x-slot>
+@extends('layouts.teacher')
 
-    {{-- Back link --}}
-    <div class="mb-4">
-        <a href="{{ route('teacher.modules.index') }}"
-           class="text-sm text-indigo-600 underline">
-            ← Back to Modules
-        </a>
-    </div>
+@section('title', 'Module Students')
+@section('header', 'Module Students')
 
-    {{-- Flash success --}}
-    @if(session('success'))
-        <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">
-            {{ session('success') }}
-        </div>
-    @endif
+@section('content')
 
-    <div class="bg-white rounded shadow overflow-x-auto">
+<!-- ================= MODULE INFO ================= -->
+<div class="mb-8">
+    <h2 class="text-2xl font-bold text-slate-900">
+        {{ $module->name }}
+    </h2>
+    <p class="text-slate-600">
+        Manage student results for this module
+    </p>
+</div>
+
+<!-- ================= STUDENTS TABLE ================= -->
+@if($students->count())
+    <div class="bg-white rounded-2xl shadow border border-black/5 overflow-hidden">
+
         <table class="w-full text-sm">
-            <thead class="bg-gray-100">
+            <thead class="bg-slate-100 text-slate-700">
                 <tr>
-                    <th class="p-3 text-left">Name</th>
-                    <th class="p-3 text-left">Email</th>
-                    <th class="p-3 text-left">Enrolled At</th>
-                    <th class="p-3 text-left">Result</th>
+                    <th class="p-4 text-left">Name</th>
+                    <th class="p-4 text-left">Email</th>
+                    <th class="p-4 text-left">Actions</th>
                 </tr>
             </thead>
 
             <tbody>
-                @forelse($students as $student)
+                @foreach($students as $student)
                     <tr class="border-t">
-                        <td class="p-3">{{ $student->name }}</td>
-                        <td class="p-3">{{ $student->email }}</td>
-                        <td class="p-3">
-                            {{ optional($student->pivot->enrolled_at)->format('d M Y') }}
+                        <td class="p-4 font-medium">
+                            {{ $student->name }}
                         </td>
+                        <td class="p-4">
+                            {{ $student->email }}
+                        </td>
+                        <td class="p-4">
+                            <div class="flex gap-2">
 
-                        <td class="p-3">
-                            @if($student->pivot->status === 'ENROLLED')
-                                <div class="flex gap-2">
-                                    <form method="POST"
-                                          action="{{ route('teacher.modules.students.pass', [$module, $student]) }}">
-                                        @csrf
-                                        <button
-                                            class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
-                                            PASS
-                                        </button>
-                                    </form>
+                                <!-- PASS -->
+                                <form method="POST"
+                                      action="{{ route('teacher.modules.students.pass', [$module, $student]) }}">
+                                    @csrf
+                                    <button type="submit"
+                                            class="px-3 py-1 rounded-lg
+                                                   bg-green-600 text-white
+                                                   hover:bg-green-700 text-xs">
+                                        PASS
+                                    </button>
+                                </form>
 
-                                    <form method="POST"
-                                          action="{{ route('teacher.modules.students.fail', [$module, $student]) }}">
-                                        @csrf
-                                        <button
-                                            class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
-                                            FAIL
-                                        </button>
-                                    </form>
-                                </div>
-                            @else
-                                <span
-                                    class="px-3 py-1 rounded text-sm font-semibold
-                                    {{ $student->pivot->status === 'PASS'
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-red-100 text-red-800' }}">
-                                    {{ $student->pivot->status }}
-                                </span>
-                            @endif
+                                <!-- FAIL -->
+                                <form method="POST"
+                                      action="{{ route('teacher.modules.students.fail', [$module, $student]) }}">
+                                    @csrf
+                                    <button type="submit"
+                                            class="px-3 py-1 rounded-lg
+                                                   bg-red-600 text-white
+                                                   hover:bg-red-700 text-xs">
+                                        FAIL
+                                    </button>
+                                </form>
+
+                            </div>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="p-4 text-center text-gray-500">
-                            No students enrolled.
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
+
     </div>
-</x-teacher-layout>
+@else
+    <div class="rounded-xl bg-white p-6 text-slate-600 shadow">
+        No active students enrolled in this module.
+    </div>
+@endif
+
+<!-- ================= BACK ================= -->
+<div class="mt-8">
+    <a href="{{ route('teacher.modules.index') }}"
+       class="inline-flex items-center gap-2
+              px-4 py-2 rounded-lg
+              bg-slate-200 text-slate-800
+              hover:bg-slate-300 transition text-sm">
+        ← Back to Modules
+    </a>
+</div>
+
+@endsection
