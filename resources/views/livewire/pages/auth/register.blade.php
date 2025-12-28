@@ -27,19 +27,20 @@ new #[Layout('layouts.guest')] class extends Component
         // Hash password
         $validated['password'] = Hash::make($validated['password']);
 
-        // Assign STUDENT role (must exist in user_roles table)
-        $studentRole = UserRole::where('name', 'student')->firstOrFail();
+        // ✅ FIXED: use correct column name `role`
+        $studentRole = UserRole::where('role', 'student')->firstOrFail();
         $validated['user_role_id'] = $studentRole->id;
 
         // Create user
         $user = User::create($validated);
+
         event(new Registered($user));
 
-        // IMPORTANT: ensure clean session (fixes admin → student issue)
+        // Ensure correct session
         Auth::logout();
         Auth::login($user);
 
-        // Redirect WITHOUT route() or navigate:true
+        // Redirect to role-based dashboard
         $this->redirect('/dashboard');
     }
 };
@@ -102,7 +103,8 @@ new #[Layout('layouts.guest')] class extends Component
 
         <!-- Actions -->
         <div class="flex items-center justify-end">
-            <a href="{{ route('login') }}" class="text-sm underline text-gray-600 hover:text-gray-900">
+            <a href="{{ route('login') }}"
+               class="text-sm underline text-gray-600 hover:text-gray-900">
                 Already registered?
             </a>
 
@@ -110,5 +112,6 @@ new #[Layout('layouts.guest')] class extends Component
                 Register
             </x-primary-button>
         </div>
+
     </form>
 </div>

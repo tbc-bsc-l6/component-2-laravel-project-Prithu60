@@ -6,9 +6,9 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
-            {{-- Flash messages --}}
+            {{-- FLASH MESSAGES --}}
             @if(session('success'))
                 <div class="bg-green-100 text-green-800 px-4 py-3 rounded">
                     {{ session('success') }}
@@ -21,130 +21,116 @@
                 </div>
             @endif
 
-            {{-- 1) Enrolled Modules --}}
+            {{-- ================= ENROLLED MODULES ================= --}}
             <div class="bg-white shadow rounded p-6">
-                <h3 class="text-lg font-bold mb-4">Currently Enrolled Modules</h3>
+                <h3 class="text-lg font-bold mb-4">
+                    Currently Enrolled Modules
+                </h3>
 
-                @if($enrolledModules->count() === 0)
+                @forelse($enrolledModules as $module)
+                    <div class="border rounded px-4 py-3 mb-3 flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold">{{ $module->name }}</p>
+
+                            <p class="text-sm text-gray-600">
+                                Enrolled on:
+                                {{ optional($module->pivot->enrolled_at)->format('d M Y') }}
+                            </p>
+
+                            <p class="text-xs text-gray-500 mt-1">
+                                Students enrolled:
+                                {{ $module->enrolled_students_count }} / 10
+                            </p>
+                        </div>
+
+                        <span class="px-3 py-1 rounded text-sm bg-blue-100 text-blue-800">
+                            ENROLLED
+                        </span>
+                    </div>
+                @empty
                     <p class="text-gray-600">
-                        You are not enrolled in any module right now.
+                        You are not enrolled in any modules.
                     </p>
-                @else
-                    <ul class="space-y-3">
-                        @foreach($enrolledModules as $module)
-                            <li class="flex items-center justify-between border rounded px-4 py-3">
-                                <div>
-                                    <p class="font-semibold">{{ $module->name }}</p>
-                                    <p class="text-sm text-gray-600">
-                                        Enrolled:
-                                        {{ optional($module->pivot->enrolled_at)->format('Y-m-d') }}
-                                    </p>
-                                </div>
-
-                                <span class="px-3 py-1 rounded text-sm bg-blue-100 text-blue-800">
-                                    ENROLLED
-                                </span>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
+                @endforelse
             </div>
 
-            {{-- 2) Available Modules --}}
+            {{-- ================= AVAILABLE MODULES ================= --}}
             <div class="bg-white shadow rounded p-6">
-                <h3 class="text-lg font-bold mb-4">Available Modules</h3>
+                <h3 class="text-lg font-bold mb-4">
+                    Available Modules
+                </h3>
 
-                @if($availableModules->count() === 0)
+                @forelse($availableModules as $module)
+                    <div class="border rounded px-4 py-3 mb-3 flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold">{{ $module->name }}</p>
+
+                            <p class="text-xs text-gray-500 mt-1">
+                                Students enrolled:
+                                {{ $module->enrolled_students_count }} / 10
+                            </p>
+                        </div>
+
+                        {{-- BUTTON LOGIC --}}
+                        @if(auth()->user()->activeModules()->count() >= 4)
+                            <button disabled
+                                class="px-4 py-2 rounded bg-gray-200 text-gray-600 cursor-not-allowed">
+                                Max 4 reached
+                            </button>
+
+                        @elseif($module->enrolled_students_count >= 10)
+                            <button disabled
+                                class="px-4 py-2 rounded bg-gray-200 text-gray-600 cursor-not-allowed">
+                                Module full
+                            </button>
+
+                        @else
+                            <form method="POST"
+                                  action="{{ route('student.modules.enroll', $module) }}">
+                                @csrf
+                                <button
+                                    class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                                    Enroll
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                @empty
                     <p class="text-gray-600">
-                        No modules are currently available.
+                        No modules available.
                     </p>
-                @else
-                    <ul class="space-y-3">
-                        @foreach($availableModules as $module)
-                            <li class="flex items-center justify-between border rounded px-4 py-3">
-                                <div class="pr-4">
-                                    <p class="font-semibold">{{ $module->name }}</p>
-
-                                    @if($module->description)
-                                        <p class="text-sm text-gray-600">
-                                            {{ $module->description }}
-                                        </p>
-                                    @endif
-
-                                    <p class="text-xs text-gray-500 mt-1">
-                                        Capacity:
-                                        {{ $module->enrolledStudentsCount() }} / 10
-                                    </p>
-                                </div>
-
-                                @php
-                                    $isFull  = $module->isFull();
-                                    $atLimit = $enrolledModules->count() >= 4;
-                                @endphp
-
-                                @if($atLimit)
-                                    <button disabled
-                                        class="px-4 py-2 rounded bg-gray-200 text-gray-600 cursor-not-allowed">
-                                        Max 4 reached
-                                    </button>
-                                @elseif($isFull)
-                                    <button disabled
-                                        class="px-4 py-2 rounded bg-gray-200 text-gray-600 cursor-not-allowed">
-                                        Module Full
-                                    </button>
-                                @else
-                                    <form method="POST"
-                                          action="{{ route('student.modules.enroll', $module) }}">
-                                        @csrf
-                                        <button
-                                            class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
-                                            Enroll
-                                        </button>
-                                    </form>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
+                @endforelse
             </div>
 
-            {{-- 3) Completed Modules --}}
+            {{-- ================= COMPLETED MODULES ================= --}}
             <div class="bg-white shadow rounded p-6">
                 <h3 class="text-lg font-bold mb-4">
                     Completed Modules (PASS / FAIL)
                 </h3>
 
-                @if($completedModules->count() === 0)
+                @forelse($completedModules as $module)
+                    <div class="border rounded px-4 py-3 mb-3 flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold">{{ $module->name }}</p>
+
+                            <p class="text-sm text-gray-600">
+                                Completed on:
+                                {{ optional($module->pivot->completed_at)->format('d M Y') }}
+                            </p>
+                        </div>
+
+                        <span class="px-3 py-1 rounded text-sm
+                            {{ $module->pivot->status === 'PASS'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800' }}">
+                            {{ $module->pivot->status }}
+                        </span>
+                    </div>
+                @empty
                     <p class="text-gray-600">
                         No completed modules yet.
                     </p>
-                @else
-                    <ul class="space-y-3">
-                        @foreach($completedModules as $module)
-                            <li class="flex items-center justify-between border rounded px-4 py-3">
-                                <div>
-                                    <p class="font-semibold">{{ $module->name }}</p>
-                                    <p class="text-sm text-gray-600">
-                                        Completed:
-                                        {{ optional($module->pivot->completed_at)->format('Y-m-d') ?? '—' }}
-                                    </p>
-                                </div>
-
-                                @if($module->pivot->status === 'PASS')
-                                    <span
-                                        class="px-3 py-1 rounded text-sm bg-green-100 text-green-800">
-                                        PASS
-                                    </span>
-                                @else
-                                    <span
-                                        class="px-3 py-1 rounded text-sm bg-red-100 text-red-800">
-                                        FAIL
-                                    </span>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
+                @endforelse
             </div>
 
         </div>

@@ -48,7 +48,7 @@
         <p class="text-4xl font-bold text-blue-900 mt-2">{{ $currentStudents }}</p>
     </div>
 
-    <div class="bg-green-100 rounded-2xl p-6 shadow">
+    <div class="bg-purple-100 rounded-2xl p-6 shadow">
         <p class="text-sm text-green-700">Old Students</p>
         <p class="text-4xl font-bold text-green-900 mt-2">{{ $oldStudents }}</p>
     </div>
@@ -67,7 +67,7 @@
         </p>
     </div>
 
-    <div class="bg-emerald-100 rounded-2xl p-6 shadow">
+    <div class="bg-blue-100 rounded-2xl p-6 shadow">
         <p class="text-sm text-emerald-700">System Status</p>
         <p class="text-2xl font-bold text-emerald-900 mt-4">
             Running ✅
@@ -81,7 +81,7 @@
 
     <a href="{{ route('admin.students.index') }}"
        class="block bg-white rounded-xl shadow
-              border-2 border-green-300
+              border-2 border-green-400
               px-8 py-6
               hover:bg-green-50 transition">
         <h3 class="text-lg font-semibold text-gray-800">Students</h3>
@@ -92,7 +92,7 @@
 
     <a href="{{ route('admin.old-students.index') }}"
        class="block bg-white rounded-xl shadow
-              border-2 border-green-300
+              border-2 border-green-400
               px-8 py-6
               hover:bg-green-50 transition">
         <h3 class="text-lg font-semibold text-gray-800">Old Students</h3>
@@ -103,7 +103,7 @@
 
     <a href="{{ route('admin.teachers.index') }}"
        class="block bg-white rounded-xl shadow
-              border-2 border-green-300
+              border-2 border-green-400
               px-8 py-6
               hover:bg-green-50 transition">
         <h3 class="text-lg font-semibold text-gray-800">Teachers</h3>
@@ -114,7 +114,7 @@
 
     <a href="{{ route('admin.modules.index') }}"
        class="block bg-white rounded-xl shadow
-              border-2 border-green-300
+              border-2 border-green-400
               px-8 py-6
               hover:bg-green-50 transition">
         <h3 class="text-lg font-semibold text-gray-800">Modules</h3>

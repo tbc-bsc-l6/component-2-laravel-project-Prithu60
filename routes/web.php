@@ -4,14 +4,23 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
+/*
+|--------------------------------------------------------------------------
+| ADMIN CONTROLLERS
+|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 
+/*
+|--------------------------------------------------------------------------
+| TEACHER & STUDENT CONTROLLERS
+|--------------------------------------------------------------------------
+*/
 use App\Http\Controllers\Teacher\ModuleController as TeacherModuleController;
 use App\Http\Controllers\Student\ModuleController as StudentModuleController;
-use App\Models\User;
-use App\Models\UserRole;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +33,7 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Auth (Breeze / Livewire)
+| Auth (Breeze)
 |--------------------------------------------------------------------------
 */
 require __DIR__ . '/auth.php';
@@ -40,19 +49,17 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 
 /*
 |--------------------------------------------------------------------------
-| Dashboard Redirect (ROLE BASED)
+| Dashboard Redirect (ROLE BASED ONLY)
 |--------------------------------------------------------------------------
 */
-Route::get('/dashboard', function () {
-
-    $studentRole = UserRole::where('role', 'student')->first();
-    $oldRole = UserRole::where('role', 'old_student')->first();
-
-    return view('admin.dashboard', [
-        'totalStudents'   => User::whereIn('user_role_id', [$studentRole->id, $oldRole->id])->count(),
-        'currentStudents' => User::where('user_role_id', $studentRole->id)->count(),
-        'oldStudents'     => User::where('user_role_id', $oldRole->id)->count(),
-    ]);
+Route::middleware('auth')->get('/dashboard', function () {
+    return match (auth()->user()->role->role) {
+        'admin'       => redirect()->route('admin.dashboard'),
+        'teacher'     => redirect()->route('teacher.dashboard'),
+        'student'     => redirect()->route('student.dashboard'),
+        'old_student' => redirect()->route('student.history'),
+        default       => abort(403),
+    };
 })->name('dashboard');
 
 /*
@@ -65,7 +72,8 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
 
-        Route::get('/dashboard', fn () => view('admin.dashboard'))
+        // ✅ ADMIN DASHBOARD (DATA COMES FROM CONTROLLER)
+        Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
 
         // Modules CRUD
@@ -87,11 +95,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::patch('/modules/{module}/toggle', [AdminModuleController::class, 'toggle'])
             ->name('modules.toggle');
 
-        // View students in module
         Route::get('/modules/{module}/students', [AdminModuleController::class, 'students'])
             ->name('modules.students');
 
-        // Assign teachers to module
         Route::get(
             '/modules/{module}/assign-teachers',
             [AdminModuleController::class, 'assignTeachers']
@@ -112,7 +118,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/teachers/{user}', [TeacherController::class, 'destroy'])
             ->name('teachers.destroy');
 
-        // Students (CURRENT)
+        // Students (current)
         Route::get('/students', [AdminStudentController::class, 'index'])
             ->name('students.index');
 
@@ -126,7 +132,7 @@ Route::middleware(['auth', 'role:admin'])
             [AdminStudentController::class, 'removeFromModule']
         )->name('students.removeFromModule');
 
-        // ✅ OLD STUDENTS (ADMIN VIEW)
+        // Old students (admin view)
         Route::get(
             '/old-students',
             [AdminStudentController::class, 'oldStudents']
@@ -165,7 +171,7 @@ Route::middleware(['auth', 'role:teacher'])
 
 /*
 |--------------------------------------------------------------------------
-| STUDENT ROUTES (CURRENT)
+| STUDENT ROUTES
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:student'])
@@ -184,7 +190,7 @@ Route::middleware(['auth', 'role:student'])
 
 /*
 |--------------------------------------------------------------------------
-| OLD STUDENT ROUTES (READ ONLY)
+| OLD STUDENT ROUTES
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:old_student'])
@@ -192,15 +198,13 @@ Route::middleware(['auth', 'role:old_student'])
     ->name('student.')
     ->group(function () {
 
-        Route::get(
-            '/modules/history',
-            [StudentModuleController::class, 'history']
-        )->name('history');
+        Route::get('/modules/history', [StudentModuleController::class, 'history'])
+            ->name('history');
     });
 
 /*
 |--------------------------------------------------------------------------
-| PROFILE (Breeze)
+| PROFILE
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
