@@ -36,86 +36,88 @@
 </div>
 
 <!-- ================= STATS GRID ================= -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
 
-    <!-- TOTAL STUDENTS -->
     <div class="bg-indigo-100 rounded-2xl p-6 shadow">
         <p class="text-sm text-indigo-700">Total Students</p>
-        <p class="text-4xl font-bold text-indigo-900 mt-2">
-            {{ $totalStudents }}
-        </p>
+        <p class="text-4xl font-bold text-indigo-900 mt-2">{{ $totalStudents }}</p>
     </div>
 
-    <!-- CURRENT STUDENTS -->
     <div class="bg-blue-100 rounded-2xl p-6 shadow">
         <p class="text-sm text-blue-700">Current Students</p>
-        <p class="text-4xl font-bold text-blue-900 mt-2">
-            {{ $currentStudents }}
-        </p>
+        <p class="text-4xl font-bold text-blue-900 mt-2">{{ $currentStudents }}</p>
     </div>
 
-    <!-- OLD STUDENTS -->
     <div class="bg-green-100 rounded-2xl p-6 shadow">
         <p class="text-sm text-green-700">Old Students</p>
-        <p class="text-4xl font-bold text-green-900 mt-2">
-            {{ $oldStudents }}
-        </p>
+        <p class="text-4xl font-bold text-green-900 mt-2">{{ $oldStudents }}</p>
     </div>
 
-    <!-- TOTAL TEACHERS -->
     <div class="bg-purple-100 rounded-2xl p-6 shadow">
         <p class="text-sm text-purple-700">Total Teachers</p>
         <p class="text-4xl font-bold text-purple-900 mt-2">
-            {{ \App\Models\User::whereHas('role', fn($q) => $q->where('role', 'teacher'))->count() }}
+            {{ \App\Models\User::whereHas('role', fn($q) => $q->where('role','teacher'))->count() }}
         </p>
     </div>
 
-    <!-- TOTAL MODULES -->
-    <div class="bg-orange-100 rounded-2xl p-6 shadow">
-        <p class="text-sm text-orange-700">Total Modules</p>
-        <p class="text-4xl font-bold text-orange-900 mt-2">
+    <div class="bg-pink-100 rounded-2xl p-6 shadow">
+        <p class="text-sm text-pink-700">Total Modules</p>
+        <p class="text-4xl font-bold text-pink-900 mt-2">
             {{ \App\Models\Module::count() }}
         </p>
     </div>
 
-    <!-- EXTRA CARD (SYSTEM STATUS) -->
-    <div class="bg-gray-100 rounded-2xl p-6 shadow">
-        <p class="text-sm text-gray-600">System Status</p>
-        <p class="text-2xl font-bold text-gray-900 mt-4">
+    <div class="bg-emerald-100 rounded-2xl p-6 shadow">
+        <p class="text-sm text-emerald-700">System Status</p>
+        <p class="text-2xl font-bold text-emerald-900 mt-4">
             Running ✅
         </p>
     </div>
 
 </div>
 
-<!-- ================= QUICK LINKS ================= -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- ================= LONG ACTION BOXES (FIXED WIDTH) ================= -->
+<div class="max-w-4xl space-y-4">
 
     <a href="{{ route('admin.students.index') }}"
-       class="bg-white rounded-xl shadow p-6 hover:bg-gray-50 transition">
-        <h3 class="font-semibold text-gray-800">
-            Manage Students
-        </h3>
+       class="block bg-white rounded-xl shadow
+              border-2 border-green-300
+              px-8 py-6
+              hover:bg-green-50 transition">
+        <h3 class="text-lg font-semibold text-gray-800">Students</h3>
         <p class="text-sm text-gray-500 mt-1">
             View & manage current students
         </p>
     </a>
 
     <a href="{{ route('admin.old-students.index') }}"
-       class="bg-white rounded-xl shadow p-6 hover:bg-gray-50 transition">
-        <h3 class="font-semibold text-gray-800">
-            Old Students
-        </h3>
+       class="block bg-white rounded-xl shadow
+              border-2 border-green-300
+              px-8 py-6
+              hover:bg-green-50 transition">
+        <h3 class="text-lg font-semibold text-gray-800">Old Students</h3>
         <p class="text-sm text-gray-500 mt-1">
-            View completed students & history
+            Completed students & history
+        </p>
+    </a>
+
+    <a href="{{ route('admin.teachers.index') }}"
+       class="block bg-white rounded-xl shadow
+              border-2 border-green-300
+              px-8 py-6
+              hover:bg-green-50 transition">
+        <h3 class="text-lg font-semibold text-gray-800">Teachers</h3>
+        <p class="text-sm text-gray-500 mt-1">
+            Create & manage teachers
         </p>
     </a>
 
     <a href="{{ route('admin.modules.index') }}"
-       class="bg-white rounded-xl shadow p-6 hover:bg-gray-50 transition">
-        <h3 class="font-semibold text-gray-800">
-            Modules
-        </h3>
+       class="block bg-white rounded-xl shadow
+              border-2 border-green-300
+              px-8 py-6
+              hover:bg-green-50 transition">
+        <h3 class="text-lg font-semibold text-gray-800">Modules</h3>
         <p class="text-sm text-gray-500 mt-1">
             Create & manage modules
         </p>
