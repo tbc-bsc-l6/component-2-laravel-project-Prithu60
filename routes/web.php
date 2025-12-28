@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 
 use App\Http\Controllers\Teacher\ModuleController as TeacherModuleController;
 use App\Http\Controllers\Student\ModuleController as StudentModuleController;
+use App\Models\User;
+use App\Models\UserRole;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,16 +44,16 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
-    $role = auth()->user()->role->role;
 
-    return match ($role) {
-        'admin'       => redirect()->route('admin.dashboard'),
-        'teacher'     => redirect()->route('teacher.dashboard'),
-        'student'     => redirect()->route('student.dashboard'),
-        'old_student' => redirect()->route('student.history'),
-        default       => abort(403),
-    };
-})->middleware('auth')->name('dashboard');
+    $studentRole = UserRole::where('role', 'student')->first();
+    $oldRole = UserRole::where('role', 'old_student')->first();
+
+    return view('admin.dashboard', [
+        'totalStudents'   => User::whereIn('user_role_id', [$studentRole->id, $oldRole->id])->count(),
+        'currentStudents' => User::where('user_role_id', $studentRole->id)->count(),
+        'oldStudents'     => User::where('user_role_id', $oldRole->id)->count(),
+    ]);
+})->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -89,7 +91,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/modules/{module}/students', [AdminModuleController::class, 'students'])
             ->name('modules.students');
 
-        // ✅ Assign teachers to module (FIXED)
+        // Assign teachers to module
         Route::get(
             '/modules/{module}/assign-teachers',
             [AdminModuleController::class, 'assignTeachers']
@@ -110,19 +112,25 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/teachers/{user}', [TeacherController::class, 'destroy'])
             ->name('teachers.destroy');
 
-        // Students
+        // Students (CURRENT)
         Route::get('/students', [AdminStudentController::class, 'index'])
             ->name('students.index');
+
+        Route::patch(
+            '/students/{student}/role',
+            [AdminStudentController::class, 'updateRole']
+        )->name('students.updateRole');
 
         Route::delete(
             '/students/{student}/remove/{module}',
             [AdminStudentController::class, 'removeFromModule']
         )->name('students.removeFromModule');
 
-        Route::patch(
-            '/students/{student}/role',
-            [AdminStudentController::class, 'updateRole']
-        )->name('students.updateRole');
+        // ✅ OLD STUDENTS (ADMIN VIEW)
+        Route::get(
+            '/old-students',
+            [AdminStudentController::class, 'oldStudents']
+        )->name('old-students.index');
     });
 
 /*
@@ -141,13 +149,9 @@ Route::middleware(['auth', 'role:teacher'])
         Route::get('/modules', [TeacherModuleController::class, 'index'])
             ->name('modules.index');
 
-        // View students in module (show page)
-        Route::get(
-            '/modules/{module}',
-            [TeacherModuleController::class, 'show']
-        )->name('modules.show');
+        Route::get('/modules/{module}', [TeacherModuleController::class, 'show'])
+            ->name('modules.show');
 
-        // PASS / FAIL
         Route::post(
             '/modules/{module}/students/{student}/pass',
             [TeacherModuleController::class, 'pass']
@@ -161,7 +165,7 @@ Route::middleware(['auth', 'role:teacher'])
 
 /*
 |--------------------------------------------------------------------------
-| STUDENT ROUTES (CURRENT STUDENT)
+| STUDENT ROUTES (CURRENT)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:student'])

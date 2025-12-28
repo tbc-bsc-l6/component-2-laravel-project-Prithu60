@@ -26,13 +26,15 @@
                     </thead>
 
                     <tbody>
-                        @foreach($students as $student)
+                        @forelse($students as $student)
                             <tr class="border-b">
                                 <td class="py-2 px-2">{{ $student->name }}</td>
                                 <td class="py-2 px-2">{{ $student->email }}</td>
-                                <td class="py-2 px-2">
-                                    {{ ucfirst($student->role->name) }}
+
+                                <td class="py-2 px-2 font-medium">
+                                    {{ ucfirst(str_replace('_', ' ', $student->role->role)) }}
                                 </td>
+
                                 <td class="py-2 px-2">
                                     <form method="POST"
                                           action="{{ route('admin.students.updateRole', $student) }}"
@@ -40,30 +42,30 @@
                                         @csrf
                                         @method('PATCH')
 
-                                        <select name="role_id" class="border rounded px-2 py-1">
+                                        <select name="role_id"
+                                                class="border rounded px-2 py-1">
                                             @foreach($roles as $role)
                                                 <option value="{{ $role->id }}"
-                                                    @selected($student->role->id === $role->id)>
-                                                    {{ ucfirst(str_replace('_', ' ', $role->name)) }}
+                                                    @selected($student->user_role_id === $role->id)>
+                                                    {{ ucfirst(str_replace('_', ' ', $role->role)) }}
                                                 </option>
                                             @endforeach
                                         </select>
 
-                                        <button class="bg-indigo-600 text-white px-3 py-1 rounded">
+                                        <button type="submit"
+                                                class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded">
                                             Update
                                         </button>
                                     </form>
                                 </td>
                             </tr>
-                        @endforeach
-
-                        @if($students->isEmpty())
+                        @empty
                             <tr>
                                 <td colspan="4" class="text-center text-gray-500 py-4">
                                     No students found.
                                 </td>
                             </tr>
-                        @endif
+                        @endforelse
                     </tbody>
                 </table>
             </div>
