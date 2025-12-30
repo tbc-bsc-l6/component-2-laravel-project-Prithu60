@@ -1,43 +1,76 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-800">
-            Old Students
-        </h2>
-    </x-slot>
+@extends('layouts.admin')
 
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+@section('title', 'Old Students')
+@section('header', 'Old Students')
 
-            <div class="bg-white shadow rounded p-6">
-                <table class="w-full border-collapse">
-                    <thead>
-                        <tr class="border-b bg-gray-100">
-                            <th class="text-left py-2 px-2">Name</th>
-                            <th class="text-left py-2 px-2">Email</th>
-                            <th class="text-left py-2 px-2">Status</th>
-                        </tr>
-                    </thead>
+@section('content')
 
-                    <tbody>
-                        @forelse($students as $student)
-                            <tr class="border-b">
-                                <td class="py-2 px-2">{{ $student->name }}</td>
-                                <td class="py-2 px-2">{{ $student->email }}</td>
-                                <td class="py-2 px-2 font-medium text-gray-700">
-                                    Old Student
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3" class="text-center text-gray-500 py-4">
-                                    No old students found.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+{{-- =====================
+| PAGE HEADER
+===================== --}}
+<div class="mb-10">
+    <div class="rounded-3xl bg-gradient-to-r
+                from-[#E6F400] via-[#9CD400] to-[#3FA34D]
+                p-10 shadow-lg text-white">
 
-        </div>
+        <h1 class="text-3xl font-bold">
+            🎓 Old Students
+        </h1>
+
+        <p class="mt-2 text-white/90">
+            Students who have completed all assigned modules
+        </p>
     </div>
-</x-app-layout>
+</div>
+
+{{-- =====================
+| OLD STUDENTS TABLE
+===================== --}}
+<div class="bg-white rounded-3xl shadow-lg p-8">
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-100 text-slate-600">
+                <tr>
+                    <th class="p-4 text-left">Name</th>
+                    <th class="p-4 text-left">Email</th>
+                    <th class="p-4 text-left">Status</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y">
+                @forelse($students as $student)
+                    <tr class="hover:bg-slate-50">
+
+                        {{-- NAME --}}
+                        <td class="p-4 font-medium text-slate-900">
+                            {{ $student->name }}
+                        </td>
+
+                        {{-- EMAIL --}}
+                        <td class="p-4 text-slate-600">
+                            {{ $student->email }}
+                        </td>
+
+                        {{-- STATUS --}}
+                        <td class="p-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                         bg-purple-100 text-purple-700">
+                                Old Student
+                            </span>
+                        </td>
+
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="3" class="p-6 text-center text-slate-500">
+                            No old students found.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@endsection

@@ -24,7 +24,7 @@ class ModuleController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | View students enrolled in a specific module
+    | View students enrolled in a specific module (ACTIVE ONLY)
     |--------------------------------------------------------------------------
     */
     public function show(Module $module)
@@ -32,7 +32,7 @@ class ModuleController extends Controller
         // Ensure teacher is assigned to this module
         $this->authorizeTeacher($module);
 
-        // Only active students (not yet completed)
+        // Only students who have NOT completed the module
         $students = $module->students()
             ->wherePivotNull('completed_at')
             ->get();
@@ -54,10 +54,6 @@ class ModuleController extends Controller
             'completed_at' => now(),
         ]);
 
-        // Refresh & auto-promote student if needed
-        $student->refresh();
-        $student->checkAndPromoteToOldStudent();
-
         return back()->with('success', 'Student marked as PASS.');
     }
 
@@ -74,10 +70,6 @@ class ModuleController extends Controller
             'status'       => 'FAIL',
             'completed_at' => now(),
         ]);
-
-        // Refresh & auto-promote student if needed
-        $student->refresh();
-        $student->checkAndPromoteToOldStudent();
 
         return back()->with('success', 'Student marked as FAIL.');
     }
