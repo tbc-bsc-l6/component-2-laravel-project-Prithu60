@@ -4,17 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\User;
 
 class Module extends Model
 {
     /**
-     * Explicit table name (avoid guessing)
+     * Explicit table name
      */
     protected $table = 'modules';
 
     /**
-     * Disable mass-assignment protection entirely
-     * (SAFE for assignment project)
+     * Disable mass assignment protection
+     * (acceptable for controlled assignment scope)
      */
     protected $guarded = [];
 
@@ -56,19 +57,19 @@ class Module extends Model
 
     /*
     |----------------------------------------------------------------------
-    | Count currently enrolled students (status = ENROLLED)
+    | Count currently enrolled (active) students
     |----------------------------------------------------------------------
     */
     public function enrolledStudentsCount(): int
     {
         return $this->students()
-            ->wherePivot('status', 'ENROLLED')
+            ->wherePivotNull('completed_at')
             ->count();
     }
 
     /*
     |----------------------------------------------------------------------
-    | Check if module has reached maximum student capacity (10)
+    | Check if module has reached maximum capacity (10 students)
     |----------------------------------------------------------------------
     */
     public function isFull(): bool
