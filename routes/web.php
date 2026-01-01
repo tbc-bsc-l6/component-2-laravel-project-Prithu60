@@ -5,9 +5,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | ADMIN CONTROLLERS
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
@@ -15,65 +15,66 @@ use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | TEACHER CONTROLLERS
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\ModuleController as TeacherModuleController;
 use App\Http\Controllers\Teacher\StudentController as TeacherStudentController;
 
 /*
-|-------------------------------------------------------------------------- 
-| STUDENT CONTROLLER
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
+| STUDENT CONTROLLERS
+|--------------------------------------------------------------------------
 */
+use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\ModuleController as StudentModuleController;
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | Public
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::get('/', function () {
     return view('welcome');
 });
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | Auth
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 require __DIR__ . '/auth.php';
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | Logout
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | Dashboard Redirect (ROLE BASED)
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::middleware('auth')->get('/dashboard', function () {
     return match (auth()->user()->role->role) {
         'admin'       => redirect()->route('admin.dashboard'),
         'teacher'     => redirect()->route('teacher.dashboard'),
         'student',
-        'old_student' => redirect()->route('student.history'),
+        'old_student' => redirect()->route('student.dashboard'),
         default       => abort(403),
     };
 })->name('dashboard');
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | ADMIN ROUTES
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
@@ -118,9 +119,9 @@ Route::middleware(['auth', 'role:admin'])
     });
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | TEACHER ROUTES
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:teacher'])
     ->prefix('teacher')
@@ -152,29 +153,32 @@ Route::middleware(['auth', 'role:teacher'])
     });
 
 /*
-|-------------------------------------------------------------------------- 
-| STUDENT + OLD STUDENT ROUTES (SHARED HISTORY)
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
+| STUDENT + OLD STUDENT ROUTES
+|--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:student,old_student'])
     ->prefix('student')
     ->name('student.')
     ->group(function () {
 
-        Route::get('/dashboard', [StudentModuleController::class, 'dashboard'])
+        // ✅ FIXED: dashboard now uses DashboardController
+        Route::get('/dashboard', [StudentDashboardController::class, 'index'])
             ->name('dashboard');
 
+        // enroll
         Route::post('/modules/{module}/enroll', [StudentModuleController::class, 'enroll'])
             ->name('modules.enroll');
 
+        // history
         Route::get('/modules/history', [StudentModuleController::class, 'history'])
             ->name('history');
     });
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | PROFILE
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
 

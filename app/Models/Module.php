@@ -8,20 +8,15 @@ use App\Models\User;
 
 class Module extends Model
 {
-    /**
-     * Explicit table name
-     */
     protected $table = 'modules';
 
-    /**
-     * Disable mass assignment protection
-     * (acceptable for controlled assignment scope)
-     */
     protected $guarded = [];
+
+    public const MAX_STUDENTS = 10;
 
     /*
     |----------------------------------------------------------------------
-    | Teachers assigned to this module
+    | Teachers
     |----------------------------------------------------------------------
     */
     public function teachers(): BelongsToMany
@@ -36,7 +31,7 @@ class Module extends Model
 
     /*
     |----------------------------------------------------------------------
-    | Students enrolled in this module
+    | Students
     |----------------------------------------------------------------------
     */
     public function students(): BelongsToMany
@@ -57,7 +52,7 @@ class Module extends Model
 
     /*
     |----------------------------------------------------------------------
-    | Count currently enrolled (active) students
+    | Helpers (VERY IMPORTANT)
     |----------------------------------------------------------------------
     */
     public function enrolledStudentsCount(): int
@@ -67,13 +62,24 @@ class Module extends Model
             ->count();
     }
 
-    /*
-    |----------------------------------------------------------------------
-    | Check if module has reached maximum capacity (10 students)
-    |----------------------------------------------------------------------
-    */
     public function isFull(): bool
     {
-        return $this->enrolledStudentsCount() >= 10;
+        return $this->enrolledStudentsCount() >= self::MAX_STUDENTS;
+    }
+
+    public function isEnrolledBy(User $user): bool
+    {
+        return $this->students()
+            ->where('users.id', $user->id)
+            ->wherePivotNull('completed_at')
+            ->exists();
+    }
+
+    public function isCompletedBy(User $user): bool
+    {
+        return $this->students()
+            ->where('users.id', $user->id)
+            ->wherePivotNotNull('completed_at')
+            ->exists();
     }
 }
