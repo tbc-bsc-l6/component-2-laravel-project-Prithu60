@@ -2,6 +2,20 @@
 
 @section('content')
 
+{{-- ================= FLASH MESSAGES ================= --}}
+@if(session('success'))
+    <div class="mb-6 rounded-xl bg-green-100 px-6 py-4 text-green-800 shadow">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="mb-6 rounded-xl bg-red-100 px-6 py-4 text-red-800 shadow">
+        {{ session('error') }}
+    </div>
+@endif
+
+
 {{-- ================= HERO HEADER ================= --}}
 <div class="mb-12">
     <div class="rounded-3xl bg-gradient-to-r
@@ -23,6 +37,7 @@
         </div>
     </div>
 </div>
+
 
 {{-- ================= QUICK STATS ================= --}}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-14">
@@ -49,6 +64,7 @@
     </div>
 
 </div>
+
 
 {{-- ================= ALL MODULES ================= --}}
 <div class="mb-6">
