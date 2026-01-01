@@ -12,27 +12,44 @@ class DashboardController extends Controller
     {
         $student = auth()->user();
 
+        // ==============================
         // Active enrolled modules
+        // ==============================
         $enrolledModules = $student->modules()
             ->wherePivotNull('completed_at')
             ->get();
 
+        // Count active modules (for MAX 4 rule)
+        $activeCount = $enrolledModules->count();
+
+        // IDs of enrolled modules (for ENROLLED badge)
+        $enrolledModuleIds = $enrolledModules->pluck('id')->toArray();
+
+        // ==============================
         // Completed modules
+        // ==============================
         $completedModules = $student->modules()
             ->wherePivotNotNull('completed_at')
             ->get();
 
-        // ALL modules with enrolled count
+        // ==============================
+        // All modules + enrolled students count
+        // ==============================
         $modules = Module::withCount([
             'users as enrolled_students_count' => function ($q) {
                 $q->whereNull('completed_at');
             }
         ])->get();
 
+        // ==============================
+        // Return view
+        // ==============================
         return view('student.dashboard', [
-            'modules' => $modules,
-            'enrolledModules' => $enrolledModules,
-            'completedModules' => $completedModules,
+            'modules'             => $modules,
+            'enrolledModules'     => $enrolledModules,
+            'completedModules'    => $completedModules,
+            'activeCount'         => $activeCount,
+            'enrolledModuleIds'   => $enrolledModuleIds,
         ]);
     }
 }

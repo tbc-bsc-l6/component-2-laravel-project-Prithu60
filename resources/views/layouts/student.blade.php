@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SM Info Student</title>
+    <title>@yield('title', 'Student Dashboard')</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -25,7 +28,9 @@
         <div class="px-6 py-4 border-b border-white/10">
             <p class="text-xs text-white/60">Logged in as</p>
             <p class="font-semibold">
-                {{ auth()->user()->name }}
+                @auth
+                    {{ auth()->user()->name }}
+                @endauth
             </p>
         </div>
 
@@ -42,11 +47,13 @@
 
         </nav>
 
-        <!-- LOGOUT -->
+        <!-- LOGOUT (BREEZE CORRECT) -->
         <div class="px-4 py-4 border-t border-white/10">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button
+                    type="submit"
+                    onclick="return confirm('Are you sure you want to logout?')"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-xl
                            text-red-400 hover:bg-red-500/10 transition">
                     🚪 Logout
