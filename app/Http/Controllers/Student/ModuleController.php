@@ -10,51 +10,52 @@ use Illuminate\Support\Facades\DB;
 class ModuleController extends Controller
 {
     /*
-    |--------------------------------------------------------------------------
+    |-------------------------------------------------------------------------- 
     | STUDENT DASHBOARD
-    |--------------------------------------------------------------------------
+    |-------------------------------------------------------------------------- 
     */
     public function dashboard()
     {
         $student = auth()->user();
 
-        // Active enrolled modules
+        // Active enrolled modules (not completed)
         $enrolledModules = $student->modules()
-        ->wherePivotNull('completed_at')
-        ->withCount([
-            'students as enrolled_students_count' => function ($q) {
-                $q->wherePivotNull('completed_at');
-            }
-        ])
-        ->get();
+            ->wherePivotNull('completed_at')
+            ->withCount([
+                'students as enrolled_students_count' => function ($q) {
+                    $q->wherePivotNull('completed_at');
+                }
+            ])
+            ->get();
 
-    // Completed modules
-    $completedModules = $student->modules()
-        ->wherePivotNotNull('completed_at')
-        ->get();
+        // Completed modules
+        $completedModules = $student->modules()
+            ->wherePivotNotNull('completed_at')
+            ->get();
 
-    // ALL available modules (even if student hit max 4)
-    $availableModules = Module::where('available', true)
-        ->whereDoesntHave('students', function ($q) use ($student) {
-            $q->where('users.id', $student->id);
-        })
-        ->withCount([
-            'students as enrolled_students_count' => function ($q) {
-                $q->wherePivotNull('completed_at');
-            }
-        ])
-        ->get();
+        // Available modules for enrolment
+        $availableModules = Module::where('available', true)
+            ->whereDoesntHave('students', function ($q) use ($student) {
+                $q->where('users.id', $student->id);
+            })
+            ->withCount([
+                'students as enrolled_students_count' => function ($q) {
+                    $q->wherePivotNull('completed_at');
+                }
+            ])
+            ->get();
 
-    return view('student.dashboard', compact(
-        'enrolledModules',
-        'availableModules',
-        'completedModules'
-    ));
-}
+        return view('student.dashboard', compact(
+            'enrolledModules',
+            'availableModules',
+            'completedModules'
+        ));
+    }
+
     /*
-    |--------------------------------------------------------------------------
-    | ENROLL STUDENT
-    |--------------------------------------------------------------------------
+    |-------------------------------------------------------------------------- 
+    | ENROLL STUDENT INTO MODULE
+    |-------------------------------------------------------------------------- 
     */
     public function enroll(Module $module)
     {
@@ -99,5 +100,27 @@ class ModuleController extends Controller
         }
 
         return back()->with('success', 'Successfully enrolled in module.');
+    }
+
+    /*
+    |-------------------------------------------------------------------------- 
+    | STUDENT MODULE HISTORY (COMPLETED MODULES ONLY)
+    |-------------------------------------------------------------------------- 
+    */
+    public function history()
+    {
+        $student = auth()->user();
+
+        // Completed modules only (PASS / FAIL)
+        $modules = $student->modules()
+            ->wherePivotNotNull('completed_at')
+            ->withPivot([
+                'enrolled_at',
+                'completed_at',
+                'status',
+            ])
+            ->get();
+
+        return view('student.modules.history', compact('modules'));
     }
 }
