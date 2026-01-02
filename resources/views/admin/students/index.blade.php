@@ -17,6 +17,12 @@
     </div>
 @endif
 
+@if(session('error'))
+    <div class="mb-6 rounded-lg bg-red-100 px-4 py-3 text-red-800">
+        {{ session('error') }}
+    </div>
+@endif
+
 {{-- ================= SEARCH ================= --}}
 <form method="GET" class="mb-6 flex max-w-md gap-2">
     <input
@@ -28,7 +34,8 @@
                focus:border-green-500 focus:ring-green-500"
     >
     <button
-        class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white">
+        class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white
+               hover:bg-green-700">
         Search
     </button>
 </form>
@@ -50,10 +57,10 @@
         @forelse($students as $student)
 
             @php
-                $passed   = $student->modules->where('pivot.status', 'PASS')->count();
-                $failed   = $student->modules->where('pivot.status', 'FAIL')->count();
-                $pending  = $student->modules->whereNull('pivot.status')->count();
-                $total    = $student->modules->count();
+                $passed  = $student->modules->where('pivot.status', 'PASS')->count();
+                $failed  = $student->modules->where('pivot.status', 'FAIL')->count();
+                $pending = $student->modules->whereNull('pivot.status')->count();
+                $total   = $student->modules->count();
             @endphp
 
             <tr class="hover:bg-gray-50">
@@ -63,7 +70,7 @@
                     <div class="font-semibold text-gray-900">
                         {{ $student->name }}
                     </div>
-                    <div class="text-gray-500">
+                    <div class="text-gray-500 text-xs">
                         {{ $student->email }}
                     </div>
                 </td>
@@ -109,7 +116,9 @@
                 </td>
 
                 {{-- ACTIONS --}}
-                <td class="p-4">
+                <td class="p-4 space-y-2">
+
+                    {{-- UPDATE ROLE --}}
                     <form method="POST"
                           action="{{ route('admin.students.updateRole', $student) }}"
                           class="flex items-center gap-2">
@@ -134,6 +143,13 @@
                             Update
                         </button>
                     </form>
+
+                    {{-- VIEW ENROLMENTS --}}
+                    <a href="{{ route('admin.students.enrolments', $student) }}"
+                       class="inline-block rounded-lg bg-gray-200 px-3 py-1 text-sm
+                              text-gray-800 hover:bg-gray-300">
+                        View Enrolments
+                    </a>
                 </td>
 
             </tr>

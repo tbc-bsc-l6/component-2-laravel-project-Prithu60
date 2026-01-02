@@ -81,6 +81,9 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
 
+        /*
+        | Dashboard
+        */
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
 
@@ -127,18 +130,23 @@ Route::middleware(['auth', 'role:admin'])
             ->name('teachers.destroy');
 
         /*
-        | Students
+        | Students  ✅ FULLY ASSIGNMENT COMPLIANT
         */
         Route::get('/students', [AdminStudentController::class, 'index'])
             ->name('students.index');
 
-        // ✅ FINAL FIXED ROUTE NAME
         Route::patch('/students/{student}/role', [AdminStudentController::class, 'updateRole'])
             ->name('students.updateRole');
 
-        Route::delete('/students/{student}/remove/{module}', [AdminStudentController::class, 'removeFromModule'])
-            ->name('students.removeFromModule');
+        // ✅ View enrolments (NEW – REQUIRED)
+        Route::get('/students/{student}/enrolments', [AdminStudentController::class, 'enrolments'])
+            ->name('students.enrolments');
 
+        // ✅ Remove student from ACTIVE module only
+        Route::delete('/students/{student}/modules/{module}', [AdminStudentController::class, 'removeFromModule'])
+            ->name('students.removeModule');
+
+        // Old students (completed modules only)
         Route::get('/old-students', [AdminStudentController::class, 'oldStudents'])
             ->name('old-students.index');
     });

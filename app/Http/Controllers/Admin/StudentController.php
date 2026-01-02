@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserRole;
+use App\Models\Module;
 use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
     /**
-     * CURRENT students (Student + Old Student mixed list)
+     * LIST STUDENTS (Student + Old Student)
      */
     public function index(Request $request)
     {
@@ -27,7 +28,7 @@ class StudentController extends Controller
                 'modules' => fn ($q) => $q->withPivot([
                     'status',
                     'enrolled_at',
-                    'completed_at'
+                    'completed_at',
                 ])
             ])
             ->get();
@@ -38,7 +39,7 @@ class StudentController extends Controller
     }
 
     /**
-     * UPDATE ROLE (ADMIN)
+     * UPDATE STUDENT ROLE
      */
     public function updateRole(Request $request, User $student)
     {
@@ -54,7 +55,46 @@ class StudentController extends Controller
     }
 
     /**
-     * OLD STUDENTS ONLY (COMPLETED MODULES VIEW)
+     * VIEW A STUDENT'S ENROLMENTS (ADMIN)
+     */
+    public function enrolments(User $student)
+    {
+        $student->load([
+            'modules' => fn ($q) => $q->withPivot([
+                'enrolled_at',
+                'status',
+                'completed_at',
+            ])
+        ]);
+
+        return view('admin.students.enrolments', compact('student'));
+    }
+
+    /**
+     * REMOVE STUDENT FROM AN ACTIVE MODULE
+     */
+    public function removeFromModule(User $student, Module $module)
+    {
+        // Prevent removal if module already completed
+        $pivot = $student->modules()
+            ->where('modules.id', $module->id)
+            ->first()?->pivot;
+
+        if (!$pivot) {
+            return back()->with('error', 'Student is not enrolled in this module.');
+        }
+
+        if ($pivot->completed_at !== null) {
+            return back()->with('error', 'Completed modules cannot be removed.');
+        }
+
+        $student->modules()->detach($module->id);
+
+        return back()->with('success', 'Student removed from module successfully.');
+    }
+
+    /**
+     * OLD STUDENTS PAGE (COMPLETED MODULES ONLY)
      */
     public function oldStudents()
     {
