@@ -10,25 +10,35 @@ use Illuminate\Http\Request;
 class StudentController extends Controller
 {
     /**
-     * Show CURRENT students
+     * CURRENT students (Student + Old Student mixed list)
      */
-    public function index()
+    public function index(Request $request)
     {
-        $studentRole = UserRole::where('role', 'student')->first();
+        $search = $request->query('search');
 
-        $students = User::where('user_role_id', $studentRole->id)
-        ->with('role')
-        ->get();
+        $students = User::whereHas('role', fn ($q) =>
+                $q->whereIn('role', ['student', 'old_student'])
+            )
+            ->when($search, fn ($q) =>
+                $q->where('name', 'like', "%{$search}%")
+            )
+            ->with([
+                'role',
+                'modules' => fn ($q) => $q->withPivot([
+                    'status',
+                    'enrolled_at',
+                    'completed_at'
+                ])
+            ])
+            ->get();
 
-    // 👇 THIS IS THE KEY FIX
         $roles = UserRole::whereIn('role', ['student', 'old_student'])->get();
 
-        return view('admin.students.index', compact('students', 'roles'));
+        return view('admin.students.index', compact('students', 'roles', 'search'));
     }
 
-
     /**
-     * Update student role (admin action)
+     * UPDATE ROLE (ADMIN)
      */
     public function updateRole(Request $request, User $student)
     {
@@ -43,13 +53,20 @@ class StudentController extends Controller
         return back()->with('success', 'Student role updated successfully.');
     }
 
+    /**
+     * OLD STUDENTS ONLY (COMPLETED MODULES VIEW)
+     */
     public function oldStudents()
     {
-        $oldRole = UserRole::where('role', 'old_student')->first();
+        $oldRole = UserRole::where('role', 'old_student')->firstOrFail();
 
         $students = User::where('user_role_id', $oldRole->id)
-        ->with('role')
-        ->get();
+            ->with([
+                'modules' => fn ($q) =>
+                    $q->whereNotNull('module_user.completed_at')
+                      ->withPivot(['status', 'completed_at'])
+            ])
+            ->get();
 
         return view('admin.students.old', compact('students'));
     }

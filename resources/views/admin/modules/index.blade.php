@@ -33,6 +33,23 @@
     </div>
 @endif
 
+{{-- ================= SEARCH ================= --}}
+<form method="GET" action="{{ route('admin.modules.index') }}" class="mb-6 max-w-md">
+    <div class="flex gap-2">
+        <input
+            type="text"
+            name="search"
+            value="{{ request('search') }}"
+            placeholder="Search module by name..."
+            class="flex-1 rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+        >
+        <button
+            class="rounded-lg bg-slate-800 px-4 py-2 text-white hover:bg-slate-700">
+            Search
+        </button>
+    </div>
+</form>
+
 {{-- Add Module --}}
 <div class="bg-white rounded-xl shadow p-6 mb-8">
     <h2 class="text-lg font-semibold mb-4">Add New Module</h2>
@@ -61,9 +78,6 @@
                 class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
                 placeholder="Optional..."
             >{{ old('description') }}</textarea>
-            @error('description')
-                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-            @enderror
         </div>
 
         <button class="inline-flex items-center rounded-lg bg-black px-4 py-2 text-white hover:bg-gray-800">
@@ -81,6 +95,7 @@
             <thead class="bg-gray-50 text-gray-600">
                 <tr>
                     <th class="px-4 py-3 text-left font-semibold">Name</th>
+                    <th class="px-4 py-3 text-left font-semibold">Students</th>
                     <th class="px-4 py-3 text-left font-semibold">Teachers</th>
                     <th class="px-4 py-3 text-left font-semibold">Status</th>
                     <th class="px-4 py-3 text-left font-semibold">Actions</th>
@@ -101,6 +116,11 @@
                             @endif
                         </td>
 
+                        {{-- STUDENT COUNT --}}
+                        <td class="px-4 py-3">
+                            {{ $module->students_count }} / 10
+                        </td>
+
                         <td class="px-4 py-3">
                             {{ $module->teachers_count }}
                         </td>
@@ -119,7 +139,6 @@
 
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap gap-2">
-
                                 <a href="{{ route('admin.modules.students', $module) }}"
                                    class="rounded-lg border px-3 py-1 hover:bg-gray-50">
                                     Students
@@ -142,26 +161,12 @@
                                         {{ $module->is_active ? 'Archive' : 'Unarchive' }}
                                     </button>
                                 </form>
-
-                                <form
-                                    method="POST"
-                                    action="{{ route('admin.modules.destroy', $module) }}"
-                                    onsubmit="return confirm('Delete this module? This will detach teachers and students.')"
-                                >
-                                    @csrf
-                                    @method('DELETE')
-                                    <button
-                                        class="rounded-lg border border-red-200 px-3 py-1 text-red-700 hover:bg-red-50">
-                                        Delete
-                                    </button>
-                                </form>
-
                             </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-4 py-6 text-center text-gray-500">
+                        <td colspan="5" class="px-4 py-6 text-center text-gray-500">
                             No modules found
                         </td>
                     </tr>

@@ -1,76 +1,71 @@
 @extends('layouts.admin')
 
-@section('title', 'Old Students')
-@section('header', 'Old Students')
-
 @section('content')
 
-{{-- =====================
-| PAGE HEADER
-===================== --}}
-<div class="mb-10">
-    <div class="rounded-3xl bg-gradient-to-r
-                from-[#E6F400] via-[#9CD400] to-[#3FA34D]
-                p-10 shadow-lg text-white">
-
-        <h1 class="text-3xl font-bold">
-            🎓 Old Students
-        </h1>
-
-        <p class="mt-2 text-white/90">
-            Students who have completed all assigned modules
-        </p>
-    </div>
+{{-- HEADER --}}
+<div class="mb-8 rounded-2xl bg-gradient-to-r from-purple-200 to-purple-300 p-8">
+    <h1 class="text-2xl font-bold text-purple-900">🎓 Old Students</h1>
+    <p class="text-purple-800">
+        Completed modules with PASS / FAIL history
+    </p>
 </div>
 
-{{-- =====================
-| OLD STUDENTS TABLE
-===================== --}}
-<div class="bg-white rounded-3xl shadow-lg p-8">
+{{-- TABLE --}}
+<div class="rounded-xl bg-white shadow">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-100 text-gray-600">
+            <tr>
+                <th class="p-4 text-left">Student</th>
+                <th class="p-4 text-left">Completed Modules</th>
+                <th class="p-4 text-left">Results</th>
+            </tr>
+        </thead>
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-slate-100 text-slate-600">
-                <tr>
-                    <th class="p-4 text-left">Name</th>
-                    <th class="p-4 text-left">Email</th>
-                    <th class="p-4 text-left">Status</th>
-                </tr>
-            </thead>
+        <tbody class="divide-y">
+        @forelse($students as $student)
+            <tr>
 
-            <tbody class="divide-y">
-                @forelse($students as $student)
-                    <tr class="hover:bg-slate-50">
+                {{-- STUDENT --}}
+                <td class="p-4">
+                    <div class="font-semibold">{{ $student->name }}</div>
+                    <div class="text-gray-500">{{ $student->email }}</div>
+                </td>
 
-                        {{-- NAME --}}
-                        <td class="p-4 font-medium text-slate-900">
-                            {{ $student->name }}
-                        </td>
+                {{-- MODULES --}}
+                <td class="p-4">
+                    @forelse($student->modules as $module)
+                        <div>{{ $module->name }}</div>
+                    @empty
+                        <span class="text-gray-400">No completed modules</span>
+                    @endforelse
+                </td>
 
-                        {{-- EMAIL --}}
-                        <td class="p-4 text-slate-600">
-                            {{ $student->email }}
-                        </td>
+                {{-- RESULTS --}}
+                <td class="p-4 space-y-1">
+                    @foreach($student->modules as $module)
+                        <span class="inline-block rounded px-2 py-1 text-xs font-semibold
+                            {{ $module->pivot->status === 'PASS'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700' }}">
+                            {{ $module->pivot->status }}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                            ({{ \Carbon\Carbon::parse($module->pivot->completed_at)->format('d M Y') }})
+                        </span>
+                        <br>
+                    @endforeach
+                </td>
 
-                        {{-- STATUS --}}
-                        <td class="p-4">
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                         bg-purple-100 text-purple-700">
-                                Old Student
-                            </span>
-                        </td>
-
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="3" class="p-6 text-center text-slate-500">
-                            No old students found.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="3" class="p-6 text-center text-gray-500">
+                    No old students found
+                </td>
+            </tr>
+        @endforelse
+        </tbody>
+    </table>
 </div>
 
 @endsection
