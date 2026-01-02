@@ -7,7 +7,7 @@
         Students in {{ $module->name }}
     </h1>
     <p class="text-gray-500">
-        {{ $module->students->count() }} / 10 enrolled
+        {{ $students->count() }} / 10 enrolled
     </p>
 </div>
 
@@ -35,18 +35,34 @@
                         {{ $student->email }}
                     </td>
 
+                    {{-- Start Date --}}
                     <td class="px-4 py-3">
-                        {{ $student->pivot->student_start_date ?? '—' }}
+                        {{ $student->pivot->enrolled_at
+                            ? \Carbon\Carbon::parse($student->pivot->enrolled_at)->format('d M Y')
+                            : '—'
+                        }}
                     </td>
 
+                    {{-- Result --}}
                     <td class="px-4 py-3">
-                        {{ $student->pivot->pass_fail ?? 'Pending' }}
+                        @if($student->pivot->status === 'PASS')
+                            <span class="font-semibold text-green-700">PASS</span>
+                        @elseif($student->pivot->status === 'FAIL')
+                            <span class="font-semibold text-red-700">FAIL</span>
+                        @else
+                            <span class="text-gray-500">Pending</span>
+                        @endif
                     </td>
 
+                    {{-- Completion Date --}}
                     <td class="px-4 py-3">
-                        {{ $student->pivot->completion_date ?? '—' }}
+                        {{ $student->pivot->completed_at
+                            ? \Carbon\Carbon::parse($student->pivot->completed_at)->format('d M Y')
+                            : '—'
+                        }}
                     </td>
 
+                    {{-- Remove Student --}}
                     <td class="px-4 py-3">
                         <form method="POST"
                               action="{{ route('admin.students.removeFromModule', [$student->id, $module->id]) }}"
@@ -54,7 +70,8 @@
                             @csrf
                             @method('DELETE')
 
-                            <button class="rounded-lg border border-red-200 px-3 py-1 text-red-700 hover:bg-red-50">
+                            <button
+                                class="rounded-lg border border-red-200 px-3 py-1 text-red-700 hover:bg-red-50">
                                 Remove
                             </button>
                         </form>

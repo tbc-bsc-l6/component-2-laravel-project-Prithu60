@@ -82,7 +82,6 @@ class ModuleController extends Controller
     */
     public function destroy(Module $module)
     {
-        // Detach relationships first (safe cleanup)
         $module->teachers()->detach();
         $module->students()->detach();
 
@@ -118,6 +117,12 @@ class ModuleController extends Controller
     {
         $students = $module->students()
             ->with('role')
+            ->withPivot([
+                'enrolled_at',
+                'completed_at',
+                'status',
+            ])
+            ->orderBy('pivot_enrolled_at')
             ->get();
 
         return view('admin.modules.students', compact('module', 'students'));
@@ -134,10 +139,7 @@ class ModuleController extends Controller
             $query->where('role', 'teacher');
         })->get();
 
-        return view(
-            'admin.modules.assign-teachers',
-            compact('module', 'teachers')
-        );
+        return view('admin.modules.assign-teachers', compact('module', 'teachers'));
     }
 
     public function storeTeachers(Request $request, Module $module)
@@ -147,7 +149,6 @@ class ModuleController extends Controller
             'teachers.*' => ['exists:users,id'],
         ]);
 
-        // Sync teachers (attach + detach cleanly)
         $module->teachers()->sync($validated['teachers'] ?? []);
 
         return redirect()

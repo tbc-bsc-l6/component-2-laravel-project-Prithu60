@@ -1,11 +1,29 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Manage Modules</h1>
-    <p class="text-gray-500">
-        Create modules, edit details, assign teachers, manage students, and toggle availability.
-    </p>
+
+<!-- ================= TOP INFO BANNER ================= -->
+<div class="mb-8">
+    <div class="flex items-center justify-between
+                px-8 py-10 rounded-2xl shadow-lg
+                bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900
+                text-white">
+
+        <div>
+            <h1 class="text-3xl font-bold">
+                Manage Modules
+            </h1>
+            <p class="mt-2 text-white/80 max-w-2xl">
+                Create modules, edit details, assign teachers, manage students,
+                and control module availability.
+            </p>
+        </div>
+
+        <div class="hidden md:flex items-center justify-center
+                    w-14 h-14 rounded-full bg-white/10 text-2xl">
+            📘
+        </div>
+    </div>
 </div>
 
 {{-- Success Message --}}
@@ -83,12 +101,10 @@
                             @endif
                         </td>
 
-                        {{-- Teacher Count --}}
                         <td class="px-4 py-3">
                             {{ $module->teachers_count }}
                         </td>
 
-                        {{-- Status --}}
                         <td class="px-4 py-3">
                             @if($module->is_active)
                                 <span class="inline-flex rounded-full bg-green-100 px-3 py-1 text-green-700">
@@ -101,29 +117,24 @@
                             @endif
                         </td>
 
-                        {{-- Actions --}}
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap gap-2">
 
-                                {{-- VIEW STUDENTS --}}
                                 <a href="{{ route('admin.modules.students', $module) }}"
                                    class="rounded-lg border px-3 py-1 hover:bg-gray-50">
                                     Students
                                 </a>
 
-                                {{-- ASSIGN TEACHERS --}}
                                 <a href="{{ route('admin.modules.assign-teachers', $module) }}"
                                    class="rounded-lg border px-3 py-1 hover:bg-gray-50">
                                     Assign Teachers
                                 </a>
 
-                                {{-- EDIT --}}
                                 <a href="{{ route('admin.modules.edit', $module) }}"
                                    class="rounded-lg border px-3 py-1 hover:bg-gray-50">
                                     Edit
                                 </a>
 
-                                {{-- TOGGLE --}}
                                 <form method="POST" action="{{ route('admin.modules.toggle', $module) }}">
                                     @csrf
                                     @method('PATCH')
@@ -132,7 +143,6 @@
                                     </button>
                                 </form>
 
-                                {{-- DELETE --}}
                                 <form
                                     method="POST"
                                     action="{{ route('admin.modules.destroy', $module) }}"
@@ -160,4 +170,5 @@
         </table>
     </div>
 </div>
+
 @endsection
