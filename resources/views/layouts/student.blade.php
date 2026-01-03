@@ -37,6 +37,7 @@
         <!-- NAV -->
         <nav class="flex-1 px-4 py-4 space-y-2 text-[15px] font-medium">
 
+            <!-- Dashboard -->
             <a href="{{ route('student.dashboard') }}"
                class="flex items-center gap-3 px-4 py-3 rounded-xl transition
                {{ request()->routeIs('student.dashboard')
@@ -45,9 +46,18 @@
                 🏠 Dashboard
             </a>
 
+            <!-- Modules -->
+            <a href="{{ route('student.modules.index') }}"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl transition
+               {{ request()->routeIs('student.modules.*')
+                    ? 'bg-white text-gray-900'
+                    : 'hover:bg-white/10 text-white' }}">
+                📚 Modules
+            </a>
+
         </nav>
 
-        <!-- LOGOUT (BREEZE CORRECT) -->
+        <!-- LOGOUT -->
         <div class="px-4 py-4 border-t border-white/10">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

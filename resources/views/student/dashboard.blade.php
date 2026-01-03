@@ -34,7 +34,7 @@
             <p class="mt-2 text-white/90 text-lg">
                 {{ $isOldStudent
                     ? 'Your completed modules and results'
-                    : 'View your completed, active and available modules' }}
+                    : 'View your completed and active modules' }}
             </p>
         </div>
 
@@ -145,59 +145,6 @@
         <p class="text-gray-500">No active modules.</p>
     @endforelse
 </div>
-@endif
-
-
-{{-- ================= OTHER MODULES (STUDENT ONLY) ================= --}}
-@if(!$isOldStudent)
-<details class="bg-white rounded-xl shadow p-6">
-    <summary class="cursor-pointer text-lg font-semibold text-gray-900">
-        Other Modules
-    </summary>
-
-    <div class="mt-6 space-y-4">
-
-        @foreach($modules as $module)
-
-            @continue($enrolledModules->contains($module->id))
-            @continue($completedModules->contains($module->id))
-
-            <div class="flex justify-between items-center border rounded-lg p-4">
-
-                <div>
-                    <h4 class="font-semibold">{{ $module->name }}</h4>
-                    <p class="text-sm text-gray-500">
-                        Students enrolled:
-                        {{ $module->enrolled_students_count }}
-                        / {{ \App\Models\Module::MAX_STUDENTS }}
-                    </p>
-                </div>
-
-                @if(!$module->is_active)
-                    <span class="text-gray-500 text-sm">UNAVAILABLE</span>
-
-                @elseif($enrolledModules->count() >= 4)
-                    <span class="text-gray-500 text-sm">MAX REACHED</span>
-
-                @elseif($module->enrolled_students_count >= \App\Models\Module::MAX_STUDENTS)
-                    <span class="text-red-600 text-sm">FULL</span>
-
-                @else
-                    <form method="POST" action="{{ route('student.modules.enroll', $module) }}">
-                        @csrf
-                        <button
-                            class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">
-                            Enroll
-                        </button>
-                    </form>
-                @endif
-
-            </div>
-
-        @endforeach
-
-    </div>
-</details>
 @endif
 
 @endsection

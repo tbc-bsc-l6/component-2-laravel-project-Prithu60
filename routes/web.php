@@ -81,9 +81,6 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function () {
 
-        /*
-        | Dashboard
-        */
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
 
@@ -130,7 +127,7 @@ Route::middleware(['auth', 'role:admin'])
             ->name('teachers.destroy');
 
         /*
-        | Students (ADMIN)
+        | Students
         */
         Route::get('/students', [AdminStudentController::class, 'index'])
             ->name('students.index');
@@ -141,7 +138,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/students/{student}/enrolments', [AdminStudentController::class, 'enrolments'])
             ->name('students.enrolments');
 
-        // ✅ FIXED: name matches controller + blade
         Route::delete(
             '/students/{student}/modules/{module}',
             [AdminStudentController::class, 'removeFromModule']
@@ -187,7 +183,7 @@ Route::middleware(['auth', 'role:teacher'])
 
 /*
 |--------------------------------------------------------------------------
-| STUDENT + OLD STUDENT ROUTES
+| STUDENT ROUTES (CURRENT + OLD)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:student,old_student'])
@@ -195,12 +191,19 @@ Route::middleware(['auth', 'role:student,old_student'])
     ->name('student.')
     ->group(function () {
 
+        // Dashboard
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])
             ->name('dashboard');
 
+        // ✅ Modules list (NEW)
+        Route::get('/modules', [StudentModuleController::class, 'index'])
+            ->name('modules.index');
+
+        // Enroll (only works for normal students)
         Route::post('/modules/{module}/enroll', [StudentModuleController::class, 'enroll'])
             ->name('modules.enroll');
 
+        // Optional: history page (if you keep it)
         Route::get('/modules/history', [StudentModuleController::class, 'history'])
             ->name('history');
     });

@@ -9,26 +9,33 @@ use Illuminate\Http\Request;
 class ModuleController extends Controller
 {
     /**
-     * Student dashboard – show all modules
+     * Show all modules for student (enroll page)
      */
-    public function dashboard()
+    public function index()
     {
         $student = auth()->user();
 
-        $modules = Module::orderBy('name')->get();
-
         $enrolledModules = $student->modules()
             ->wherePivotNull('completed_at')
-            ->get();
+            ->pluck('modules.id')
+            ->toArray();
 
         $completedModules = $student->modules()
             ->wherePivotNotNull('completed_at')
+            ->pluck('modules.id')
+            ->toArray();
+
+        $activeCount = count($enrolledModules);
+
+        $modules = Module::withCount('students')
+            ->orderBy('name')
             ->get();
 
-        return view('student.dashboard', compact(
+        return view('student.modules.index', compact(
             'modules',
             'enrolledModules',
-            'completedModules'
+            'completedModules',
+            'activeCount'
         ));
     }
 
@@ -39,31 +46,30 @@ class ModuleController extends Controller
     {
         $student = auth()->user();
 
-        // ❌ already enrolled
+        // Already enrolled
         if ($student->modules()->where('modules.id', $module->id)->exists()) {
             return back()->with('error', 'You are already enrolled in this module.');
         }
 
-        // ❌ enrollment closed
-        if (!$module->available) {
-            return back()->with('error', 'Enrollment for this module is currently closed.');
+        // Module inactive
+        if (!$module->is_active) {
+            return back()->with('error', 'Enrollment for this module is closed.');
         }
 
-        // ❌ module full
-        if ($module->isFull()) {
+        // Module full
+        if ($module->students()->count() >= Module::MAX_STUDENTS) {
             return back()->with('error', 'This module is already full.');
         }
 
-        // ❌ max modules reached
+        // Max 4 active modules
         $activeCount = $student->modules()
             ->wherePivotNull('completed_at')
             ->count();
 
         if ($activeCount >= 4) {
-            return back()->with('error', 'You can enroll in a maximum of 4 modules.');
+            return back()->with('error', 'You can enroll in a maximum of 4 active modules.');
         }
 
-        // ✅ enroll
         $student->modules()->attach($module->id, [
             'enrolled_at' => now(),
         ]);
