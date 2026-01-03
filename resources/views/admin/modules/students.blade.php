@@ -65,8 +65,8 @@
                     {{-- Remove Student --}}
                     <td class="px-4 py-3">
                         <form method="POST"
-                              action="{{ route('admin.students.removeFromModule', [$student->id, $module->id]) }}"
-                              onsubmit="return confirm('Remove student from this module?')">
+                              action="{{ route('admin.students.removeModule', [$student->id, $module->id]) }}"
+                            onsubmit="return confirm('Remove student from this module?')">
                             @csrf
                             @method('DELETE')
 
