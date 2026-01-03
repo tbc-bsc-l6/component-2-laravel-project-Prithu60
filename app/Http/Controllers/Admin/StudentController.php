@@ -10,41 +10,53 @@ use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
-    /**
-     * LIST STUDENTS (Student + Old Student)
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | LIST STUDENTS (STUDENT + OLD STUDENT)
+    |--------------------------------------------------------------------------
+    */
     public function index(Request $request)
     {
         $search = $request->query('search');
 
-        $students = User::whereHas('role', fn ($q) =>
-                $q->whereIn('role', ['student', 'old_student'])
-            )
-            ->when($search, fn ($q) =>
+        $students = User::whereHas('role', function ($q) {
+                $q->whereIn('role', ['student', 'old_student']);
+            })
+            ->when($search, function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-            )
+                  ->orWhere('email', 'like', "%{$search}%");
+            })
             ->with([
                 'role',
-                'modules' => fn ($q) => $q->withPivot([
-                    'status',
-                    'enrolled_at',
-                    'completed_at',
-                ])
+                'modules' => function ($q) {
+                    $q->withPivot([
+                        'enrolled_at',
+                        'status',
+                        'completed_at',
+                    ]);
+                }
             ])
+            ->orderBy('name')
             ->get();
 
         $roles = UserRole::whereIn('role', ['student', 'old_student'])->get();
 
-        return view('admin.students.index', compact('students', 'roles', 'search'));
+        return view('admin.students.index', compact(
+            'students',
+            'roles',
+            'search'
+        ));
     }
 
-    /**
-     * UPDATE STUDENT ROLE
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE STUDENT ROLE (ADMIN CONTROLLED)
+    |--------------------------------------------------------------------------
+    */
     public function updateRole(Request $request, User $student)
     {
         $request->validate([
-            'role_id' => 'required|exists:user_roles,id',
+            'role_id' => ['required', 'exists:user_roles,id'],
         ]);
 
         $student->update([
@@ -54,58 +66,81 @@ class StudentController extends Controller
         return back()->with('success', 'Student role updated successfully.');
     }
 
-    /**
-     * VIEW A STUDENT'S ENROLMENTS (ADMIN)
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | VIEW A SINGLE STUDENT'S ENROLMENTS (ADMIN)
+    |--------------------------------------------------------------------------
+    */
     public function enrolments(User $student)
     {
         $student->load([
-            'modules' => fn ($q) => $q->withPivot([
-                'enrolled_at',
-                'status',
-                'completed_at',
-            ])
+            'role',
+            'modules' => function ($q) {
+                $q->withPivot([
+                    'enrolled_at',
+                    'status',
+                    'completed_at',
+                ])->orderBy('pivot_enrolled_at');
+            }
         ]);
 
         return view('admin.students.enrolments', compact('student'));
     }
 
-    /**
-     * REMOVE STUDENT FROM AN ACTIVE MODULE
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | REMOVE STUDENT FROM AN ACTIVE MODULE ONLY
+    |--------------------------------------------------------------------------
+    */
     public function removeFromModule(User $student, Module $module)
     {
-        // Prevent removal if module already completed
         $pivot = $student->modules()
             ->where('modules.id', $module->id)
-            ->first()?->pivot;
+            ->first()
+            ?->pivot;
 
         if (!$pivot) {
             return back()->with('error', 'Student is not enrolled in this module.');
         }
 
+        // Assignment rule: completed modules are historical and must remain
         if ($pivot->completed_at !== null) {
-            return back()->with('error', 'Completed modules cannot be removed.');
+            return back()->with(
+                'error',
+                'Completed modules cannot be removed.'
+            );
         }
 
         $student->modules()->detach($module->id);
 
-        return back()->with('success', 'Student removed from module successfully.');
+        return back()->with(
+            'success',
+            'Student removed from module successfully.'
+        );
     }
 
-    /**
-     * OLD STUDENTS PAGE (COMPLETED MODULES ONLY)
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | OLD STUDENTS — COMPLETED MODULES ONLY
+    |--------------------------------------------------------------------------
+    */
     public function oldStudents()
     {
-        $oldRole = UserRole::where('role', 'old_student')->firstOrFail();
+        $oldStudentRole = UserRole::where('role', 'old_student')->firstOrFail();
 
-        $students = User::where('user_role_id', $oldRole->id)
+        $students = User::where('user_role_id', $oldStudentRole->id)
             ->with([
-                'modules' => fn ($q) =>
+                'modules' => function ($q) {
                     $q->whereNotNull('module_user.completed_at')
-                      ->withPivot(['status', 'completed_at'])
+                      ->withPivot([
+                          'status',
+                          'enrolled_at',
+                          'completed_at',
+                      ])
+                      ->orderBy('pivot_completed_at', 'desc');
+                }
             ])
+            ->orderBy('name')
             ->get();
 
         return view('admin.students.old', compact('students'));

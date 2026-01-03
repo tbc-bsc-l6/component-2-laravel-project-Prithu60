@@ -11,14 +11,26 @@ class ModuleController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | LIST MODULES
+    | LIST MODULES (ADMIN)
     |--------------------------------------------------------------------------
     */
     public function index()
     {
-        $modules = Module::withCount(['teachers', 'students'])
-            ->orderByDesc('created_at')
-            ->get();
+        $modules = Module::withCount([
+            'teachers',
+
+            // ✅ ACTIVE students (count towards capacity)
+            'students as active_students_count' => function ($q) {
+                $q->whereNull('module_user.completed_at');
+            },
+
+            // ✅ COMPLETED students (PASS / FAIL)
+            'students as completed_students_count' => function ($q) {
+                $q->whereNotNull('module_user.completed_at');
+            },
+        ])
+        ->orderByDesc('created_at')
+        ->get();
 
         return view('admin.modules.index', compact('modules'));
     }

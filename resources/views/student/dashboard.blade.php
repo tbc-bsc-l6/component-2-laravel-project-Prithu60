@@ -2,6 +2,10 @@
 
 @section('content')
 
+@php
+    $isOldStudent = auth()->user()->role->role === 'old_student';
+@endphp
+
 {{-- ================= FLASH MESSAGES ================= --}}
 @if(session('success'))
     <div class="mb-6 rounded-xl bg-green-100 px-6 py-4 text-green-800 shadow">
@@ -18,16 +22,19 @@
 
 {{-- ================= HERO HEADER ================= --}}
 <div class="mb-12">
-    <div class="rounded-3xl bg-gradient-to-r
-                from-[#E6F400] via-[#9CD400] to-[#3FA34D]
-                p-10 shadow-lg text-white flex items-center justify-between">
+    <div class="rounded-3xl
+        bg-gradient-to-r from-[#E6F400] via-[#9CD400] to-[#3FA34D]
+        p-10 shadow-lg text-white flex items-center justify-between">
 
         <div>
             <h1 class="text-4xl font-extrabold">
                 Student Dashboard 🎓
             </h1>
+
             <p class="mt-2 text-white/90 text-lg">
-                View your completed, active and available modules
+                {{ $isOldStudent
+                    ? 'Your completed modules and results'
+                    : 'View your completed, active and available modules' }}
             </p>
         </div>
 
@@ -39,7 +46,8 @@
 </div>
 
 
-{{-- ================= QUICK STATS ================= --}}
+{{-- ================= QUICK STATS (STUDENT ONLY) ================= --}}
+@if(!$isOldStudent)
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-14">
 
     <div class="bg-green-100 rounded-2xl p-6 shadow">
@@ -64,9 +72,10 @@
     </div>
 
 </div>
+@endif
 
 
-{{-- ================= COMPLETED MODULES (TOP) ================= --}}
+{{-- ================= COMPLETED MODULES ================= --}}
 <div class="mb-12">
     <h2 class="text-2xl font-bold text-gray-900 mb-4">
         Completed Modules
@@ -82,7 +91,7 @@
 
                     <p class="text-sm text-gray-500">
                         Enrolled on
-                        {{ \Carbon\Carbon::parse($pivot->created_at)->format('d M Y') }}
+                        {{ \Carbon\Carbon::parse($pivot->enrolled_at ?? $pivot->created_at)->format('d M Y') }}
                     </p>
 
                     <p class="text-sm text-gray-500">
@@ -106,7 +115,8 @@
 </div>
 
 
-{{-- ================= ACTIVE MODULES ================= --}}
+{{-- ================= ACTIVE MODULES (STUDENT ONLY) ================= --}}
+@if(!$isOldStudent)
 <div class="mb-12">
     <h2 class="text-2xl font-bold text-gray-900 mb-4">
         Active Modules
@@ -121,7 +131,7 @@
                     <h3 class="font-semibold text-lg">{{ $module->name }}</h3>
                     <p class="text-sm text-gray-500">
                         Enrolled on
-                        {{ \Carbon\Carbon::parse($pivot->created_at)->format('d M Y') }}
+                        {{ \Carbon\Carbon::parse($pivot->enrolled_at ?? $pivot->created_at)->format('d M Y') }}
                     </p>
                 </div>
 
@@ -135,9 +145,11 @@
         <p class="text-gray-500">No active modules.</p>
     @endforelse
 </div>
+@endif
 
 
-{{-- ================= OTHER MODULES (DROPDOWN) ================= --}}
+{{-- ================= OTHER MODULES (STUDENT ONLY) ================= --}}
+@if(!$isOldStudent)
 <details class="bg-white rounded-xl shadow p-6">
     <summary class="cursor-pointer text-lg font-semibold text-gray-900">
         Other Modules
@@ -156,18 +168,18 @@
                     <h4 class="font-semibold">{{ $module->name }}</h4>
                     <p class="text-sm text-gray-500">
                         Students enrolled:
-                        {{ $module->enrolledStudentsCount() }}
+                        {{ $module->enrolled_students_count }}
                         / {{ \App\Models\Module::MAX_STUDENTS }}
                     </p>
                 </div>
 
-                @if(!$module->available)
+                @if(!$module->is_active)
                     <span class="text-gray-500 text-sm">UNAVAILABLE</span>
 
                 @elseif($enrolledModules->count() >= 4)
                     <span class="text-gray-500 text-sm">MAX REACHED</span>
 
-                @elseif($module->isFull())
+                @elseif($module->enrolled_students_count >= \App\Models\Module::MAX_STUDENTS)
                     <span class="text-red-600 text-sm">FULL</span>
 
                 @else
@@ -186,5 +198,6 @@
 
     </div>
 </details>
+@endif
 
 @endsection
