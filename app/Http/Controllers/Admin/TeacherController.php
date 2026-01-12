@@ -11,17 +11,37 @@ use Illuminate\Support\Facades\Hash;
 
 class TeacherController extends Controller
 {
-    public function index()
+    /*
+    |--------------------------------------------------------------------------
+    | LIST TEACHERS (WITH SEARCH)
+    |--------------------------------------------------------------------------
+    */
+    public function index(Request $request)
     {
+        $search = $request->query('q');
+
         $teachers = User::whereHas('role', function ($q) {
-            $q->where('role', 'teacher');
-        })->with('teachingModules')->get();
+                $q->where('role', 'teacher');
+            })
+            ->when($search, function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%');
+            })
+            ->with(['teachingModules' => function ($q) {
+                $q->where('modules.is_active', true);
+            }])
+            ->orderBy('name')
+            ->get();
 
-        $modules = Module::where('is_active', true)->get();
+        $modules = Module::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.teachers.index', compact('teachers', 'modules'));
+        return view('admin.teachers.index', compact('teachers', 'modules', 'search'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE TEACHER
+    |--------------------------------------------------------------------------
+    */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -43,14 +63,25 @@ class TeacherController extends Controller
         ]);
 
         if (!empty($validated['modules'])) {
-            $teacher->teachingModules()->sync($validated['modules']);
+            $syncData = [];
+            foreach ($validated['modules'] as $moduleId) {
+                $syncData[$moduleId] = [
+                    'teacher_assigned_at' => now(),
+                ];
+            }
+            $teacher->teachingModules()->sync($syncData);
         }
 
         return redirect()
             ->route('admin.teachers.index')
-            ->with('success', 'Teacher created and modules assigned successfully.');
+            ->with('success', 'Teacher created successfully.');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | DELETE TEACHER
+    |--------------------------------------------------------------------------
+    */
     public function destroy(User $user)
     {
         $user->teachingModules()->detach();

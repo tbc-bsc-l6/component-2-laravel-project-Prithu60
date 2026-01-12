@@ -41,7 +41,6 @@
         <tbody class="divide-y">
         @forelse($student->modules as $module)
             <tr>
-
                 <td class="p-4 font-semibold text-gray-900">
                     {{ $module->name }}
                 </td>
@@ -74,7 +73,7 @@
                 <td class="p-4">
                     @if($module->pivot->completed_at === null)
                         <form method="POST"
-                              action="{{ route('admin.students.removeModule', [$student, $module]) }}">
+                              action="{{ route('admin.students.removeFromModule', [$student, $module]) }}">
                             @csrf
                             @method('DELETE')
 
@@ -87,7 +86,6 @@
                         <span class="text-xs text-gray-400">Locked</span>
                     @endif
                 </td>
-
             </tr>
         @empty
             <tr>

@@ -8,41 +8,23 @@ use App\Models\User;
 
 class Module extends Model
 {
-    /**
-     * Explicit table name
-     */
-    protected $table = 'modules';
-
-    /**
-     * Mass assignment
-     */
     protected $guarded = [];
 
-    /**
-     * Maximum allowed students
-     */
     public const MAX_STUDENTS = 10;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Teachers assigned to this module
-    |--------------------------------------------------------------------------
-    */
     public function teachers(): BelongsToMany
     {
         return $this->belongsToMany(
             User::class,
-            'module_teacher',
+            'module_user',
             'module_id',
-            'teacher_id'
-        )->withTimestamps();
+            'user_id'
+        )
+        ->whereNotNull('module_user.teacher_assigned_at')
+        ->withPivot('teacher_assigned_at')
+        ->withTimestamps();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Students enrolled in this module
-    |--------------------------------------------------------------------------
-    */
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -51,78 +33,36 @@ class Module extends Model
             'module_id',
             'user_id'
         )
+        ->whereNotNull('module_user.enrolled_at')
         ->withPivot([
             'enrolled_at',
-            'status',
             'completed_at',
+            'status',
         ])
         ->withTimestamps();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ✅ Alias: users() → students()
-    | (prevents dashboard crashes)
-    |--------------------------------------------------------------------------
-    */
-    public function users(): BelongsToMany
+    public function activeStudentsCount(): int
     {
-        return $this->students();
+        return $this->students()
+            ->wherePivotNull('completed_at')
+            ->count();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Active (not completed) students
-    |--------------------------------------------------------------------------
-    */
-    public function activeStudents(): BelongsToMany
+    public function completedStudentsCount(): int
     {
-        return $this->students()->wherePivotNull('completed_at');
+        return $this->students()
+            ->wherePivotNotNull('completed_at')
+            ->count();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Count active students
-    |--------------------------------------------------------------------------
-    */
-    public function enrolledStudentsCount(): int
+    public function teachersCount(): int
     {
-        return $this->activeStudents()->count();
+        return $this->teachers()->count();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Check if module is full
-    |--------------------------------------------------------------------------
-    */
     public function isFull(): bool
     {
-        return $this->enrolledStudentsCount() >= self::MAX_STUDENTS;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Check if user is enrolled
-    |--------------------------------------------------------------------------
-    */
-    public function isEnrolledBy(User $user): bool
-    {
-        return $this->students()
-            ->where('users.id', $user->id)
-            ->wherePivotNull('completed_at')
-            ->exists();
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Check if user completed module
-    |--------------------------------------------------------------------------
-    */
-    public function isCompletedBy(User $user): bool
-    {
-        return $this->students()
-            ->where('users.id', $user->id)
-            ->wherePivotNotNull('completed_at')
-            ->exists();
+        return $this->activeStudentsCount() >= self::MAX_STUDENTS;
     }
 }

@@ -2,34 +2,61 @@
 
 @section('content')
 
-{{-- =========================
-| PAGE HEADER (LIGHT PURPLE GRADIENT)
-========================= --}}
-<div class="mb-12">
-    <div class="rounded-3xl bg-gradient-to-r
-                from-[#F2E9FF] via-[#EAD8FF] to-[#EFD6F5]
-                p-12 shadow-md">
-        <h1 class="text-4xl font-extrabold text-gray-900">
-            🎓 Manage Teachers
-        </h1>
-        <p class="text-gray-700 mt-3 text-lg">
-            Create teachers, assign modules, and manage teaching responsibilities
-        </p>
+<!-- ================= COMPACT GRADIENT HEADER ================= -->
+<div class="relative mb-6 overflow-hidden rounded-2xl shadow">
+    <div class="relative h-28 md:h-32">
+
+        <!-- Gradient (SAME AS MODULES) -->
+        <div class="absolute inset-0
+            bg-[linear-gradient(110deg,#00b84a_0%,#0b7a46_35%,#064a33_60%,#0a0a0a_100%)]">
+        </div>
+
+        <!-- Soft glow (SAME AS MODULES) -->
+        <div class="absolute -left-24 -bottom-24 h-[280px] w-[280px]
+            bg-[radial-gradient(circle_at_center,rgba(0,255,140,0.45)_0%,rgba(0,255,140,0)_60%)]
+            blur-3xl">
+        </div>
+
+        <div class="absolute left-16 top-4 h-[220px] w-[220px]
+            bg-[radial-gradient(circle_at_center,rgba(0,200,90,0.22)_0%,rgba(0,200,90,0)_60%)]
+            blur-3xl">
+        </div>
+
+        <!-- Content -->
+        <div class="relative z-10 flex h-full items-center justify-between px-6 md:px-8">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-white leading-tight">
+                    Manage Teachers
+                </h1>
+                <p class="mt-1 text-xs md:text-sm text-white/85 max-w-2xl">
+                    Create teachers, assign modules, and manage teaching responsibilities.
+                </p>
+            </div>
+
+            <div class="hidden md:flex items-center justify-center
+                        w-9 h-9 rounded-full bg-white/15 text-white text-base">
+                👨‍🏫
+            </div>
+        </div>
+
     </div>
 </div>
+
+
+
 
 {{-- =========================
 | FLASH MESSAGES
 ========================= --}}
 @if(session('success'))
-    <div class="mb-6 rounded-xl bg-green-50 border border-green-200 px-5 py-4 text-green-800 shadow-sm">
+    <div class="mb-5 rounded-xl bg-green-50 border border-green-200 px-5 py-3 text-green-800 shadow-sm">
         {{ session('success') }}
     </div>
 @endif
 
 @if($errors->any())
-    <div class="mb-6 rounded-xl bg-red-50 border border-red-200 px-5 py-4 text-red-800 shadow-sm">
-        <ul class="list-disc pl-5">
+    <div class="mb-5 rounded-xl bg-red-50 border border-red-200 px-5 py-3 text-red-800 shadow-sm">
+        <ul class="list-disc pl-5 text-sm">
             @foreach($errors->all() as $err)
                 <li>{{ $err }}</li>
             @endforeach
@@ -38,174 +65,154 @@
 @endif
 
 {{-- =========================
-| ADD TEACHER CARD
+| ADD TEACHER (SMALL & CUTE)
 ========================= --}}
-<div class="bg-white rounded-3xl shadow-lg p-10 mb-14 max-w-4xl">
+<div class="mb-8 max-w-3xl rounded-3xl bg-white shadow border border-black/5">
+    <div class="p-6">
+        <h2 class="text-lg font-semibold text-gray-900">
+            Add New Teacher
+        </h2>
+        <p class="text-xs text-gray-500 mt-1 mb-4">
+            Module assignment is optional.
+        </p>
 
-    <h2 class="text-2xl font-semibold text-gray-900 mb-2">
-        Add New Teacher
-    </h2>
-    <p class="text-sm text-gray-500 mb-10">
-        Enter teacher details below. Module assignment is optional.
-    </p>
+        <form method="POST" action="{{ route('admin.teachers.store') }}" class="space-y-4">
+            @csrf
 
-    <form method="POST" action="{{ route('admin.teachers.store') }}" class="space-y-7">
-        @csrf
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input name="first_name" placeholder="First Name"
+                       class="rounded-xl border-gray-200 px-4 py-2.5 text-sm focus:ring-emerald-500">
 
-        {{-- NAME --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="text-sm font-medium text-gray-700">First Name</label>
-                <input
-                    name="first_name"
-                    value="{{ old('first_name') }}"
-                    class="mt-2 w-full rounded-xl border-gray-300 px-5 py-3 focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="Prithu">
+                <input name="last_name" placeholder="Last Name"
+                       class="rounded-xl border-gray-200 px-4 py-2.5 text-sm focus:ring-emerald-500">
             </div>
 
-            <div>
-                <label class="text-sm font-medium text-gray-700">Last Name</label>
-                <input
-                    name="last_name"
-                    value="{{ old('last_name') }}"
-                    class="mt-2 w-full rounded-xl border-gray-300 px-5 py-3 focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="Adhikari">
+            <input name="email" placeholder="Email"
+                   class="w-full rounded-xl border-gray-200 px-4 py-2.5 text-sm focus:ring-emerald-500">
+
+            <input type="password" name="password" placeholder="Password"
+                   class="w-full rounded-xl border-gray-200 px-4 py-2.5 text-sm focus:ring-emerald-500">
+
+            {{-- MODULES --}}
+            <details class="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <summary class="cursor-pointer font-semibold text-sm">
+                    Assign Modules (optional)
+                </summary>
+
+                <div class="mt-3 space-y-2">
+                    @foreach($modules as $module)
+                        <label class="flex items-start gap-3 bg-white p-3 rounded-xl border">
+                            <input type="checkbox" name="modules[]" value="{{ $module->id }}"
+                                   class="mt-1 text-emerald-600">
+                            <span class="text-sm font-medium">{{ $module->name }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </details>
+
+            <div class="flex justify-end">
+                <button class="rounded-xl bg-emerald-700 px-5 py-2.5 text-sm text-white font-semibold">
+                    Create Teacher
+                </button>
             </div>
-        </div>
-
-        {{-- EMAIL --}}
-        <div>
-            <label class="text-sm font-medium text-gray-700">Email</label>
-            <input
-                name="email"
-                value="{{ old('email') }}"
-                class="mt-2 w-full rounded-xl border-gray-300 px-5 py-3 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="teacher@college.com">
-        </div>
-
-        {{-- PASSWORD --}}
-        <div>
-            <label class="text-sm font-medium text-gray-700">Password</label>
-            <input
-                type="password"
-                name="password"
-                class="mt-2 w-full rounded-xl border-gray-300 px-5 py-3 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="••••••••">
-            <p class="text-xs text-gray-400 mt-1">Minimum 6 characters</p>
-        </div>
-
-        {{-- ASSIGN MODULES --}}
-        <details class="rounded-2xl border border-purple-200 bg-purple-50 p-6">
-            <summary class="cursor-pointer font-semibold text-gray-800 flex items-center justify-between">
-                <span>Assign Modules (optional)</span>
-                <span class="text-purple-600">▼</span>
-            </summary>
-
-            <div class="mt-6 space-y-4">
-                @forelse($modules as $module)
-                    <label class="flex items-start gap-4 rounded-xl bg-white border border-gray-200 p-4 hover:border-purple-400 transition">
-                        <input
-                            type="checkbox"
-                            name="modules[]"
-                            value="{{ $module->id }}"
-                            class="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                            {{ in_array($module->id, old('modules', [])) ? 'checked' : '' }}>
-
-                        <div>
-                            <div class="font-medium text-gray-900">
-                                {{ $module->name }}
-                            </div>
-                            @if($module->description)
-                                <div class="text-sm text-gray-600 mt-1">
-                                    {{ $module->description }}
-                                </div>
-                            @endif
-                        </div>
-                    </label>
-                @empty
-                    <p class="text-gray-500 text-sm">No modules available.</p>
-                @endforelse
-            </div>
-        </details>
-
-        {{-- SUBMIT --}}
-        <div class="pt-6">
-            <button
-                class="w-full md:w-auto rounded-xl bg-gradient-to-r
-                       from-[#EAD8FF] to-[#D9C6FF]
-                       px-10 py-3 text-gray-900 font-semibold shadow-md hover:opacity-90 transition">
-                Create Teacher
-            </button>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
 {{-- =========================
-| TEACHER LIST (LIGHT PURPLE)
+| SEARCH
 ========================= --}}
-<div class="bg-gradient-to-br from-[#F6F0FF] to-[#EEE6FF] rounded-3xl shadow-lg p-10">
-    <h2 class="text-2xl font-semibold mb-6 text-gray-900">
-        Teacher List
-    </h2>
+<div class="mb-4 max-w-sm">
+    <input
+        id="teacherSearch"
+        type="text"
+        placeholder="Search teacher by name..."
+        class="w-full rounded-xl border-gray-300 px-4 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+</div>
 
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm bg-white rounded-2xl overflow-hidden">
-            <thead class="bg-gray-100 text-gray-600">
+{{-- =========================
+| TEACHER LIST
+========================= --}}
+<div class="rounded-3xl shadow-lg p-8 bg-gradient-to-br from-emerald-50 to-white border border-emerald-100">
+    <div class="overflow-x-auto bg-white rounded-2xl border">
+        <table class="w-full text-sm" id="teacherTable">
+            <thead class="bg-gray-50">
                 <tr>
                     <th class="p-4 text-left">Name</th>
                     <th class="p-4 text-left">Email</th>
                     <th class="p-4 text-left">Modules</th>
+                    <th class="p-4 text-left">Assigned Date</th>
                     <th class="p-4 text-left">Action</th>
                 </tr>
             </thead>
 
             <tbody class="divide-y">
-                @forelse($teachers as $teacher)
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-4 font-medium text-gray-900">
+                @foreach($teachers as $teacher)
+                    <tr class="hover:bg-emerald-50">
+                        <td class="p-4 font-medium teacher-name">
                             {{ $teacher->name }}
                         </td>
 
-                        <td class="p-4 text-gray-700">
-                            {{ $teacher->email }}
-                        </td>
+                        <td class="p-4">{{ $teacher->email }}</td>
 
                         <td class="p-4">
-                            @if($teacher->teachingModules->isEmpty())
-                                <span class="text-gray-400">—</span>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($teacher->teachingModules as $m)
+                                    <span class="px-3 py-1 bg-emerald-100 rounded-full text-xs">
+                                        {{ $m->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </td>
+
+                        {{-- ✅ FIXED ASSIGNED DATE --}}
+                        <td class="p-4 text-gray-700">
+                            @php
+                                $assignedDate = $teacher->teachingModules
+                                    ->pluck('pivot.teacher_assigned_at')
+                                    ->filter()
+                                    ->sort()
+                                    ->first();
+                            @endphp
+
+                            @if($assignedDate)
+                                <span class="text-xs font-semibold text-emerald-800
+                                             bg-emerald-50 border border-emerald-100
+                                             px-3 py-1 rounded-full">
+                                    {{ \Carbon\Carbon::parse($assignedDate)->format('d M Y') }}
+                                </span>
                             @else
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach($teacher->teachingModules as $m)
-                                        <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
-                                            {{ $m->name }}
-                                        </span>
-                                    @endforeach
-                                </div>
+                                <span class="text-gray-400">—</span>
                             @endif
                         </td>
 
                         <td class="p-4">
-                            <form method="POST"
-                                  action="{{ route('admin.teachers.destroy', $teacher) }}"
-                                  onsubmit="return confirm('Delete this teacher?')">
+                            <form method="POST" action="{{ route('admin.teachers.destroy', $teacher) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button class="text-red-600 hover:underline">
+                                <button class="text-red-600 text-sm hover:underline">
                                     Delete
                                 </button>
                             </form>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="p-6 text-center text-gray-500">
-                            No teachers found
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
 </div>
+
+{{-- =========================
+| SEARCH SCRIPT
+========================= --}}
+<script>
+document.getElementById('teacherSearch').addEventListener('keyup', function () {
+    const value = this.value.toLowerCase();
+    document.querySelectorAll('#teacherTable tbody tr').forEach(row => {
+        const name = row.querySelector('.teacher-name').innerText.toLowerCase();
+        row.style.display = name.includes(value) ? '' : 'none';
+    });
+});
+</script>
 
 @endsection

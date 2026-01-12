@@ -2,59 +2,76 @@
 
 @section('content')
 
-{{-- ================= HEADER ================= --}}
-<div class="mb-10 rounded-3xl p-8 shadow-sm"
-     style="background-color:#8FB37A;">
-    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
-        🎓 Manage Students
-    </h1>
-    <p class="mt-2 text-gray-800">
-        View students, enrolments, and update their roles
-    </p>
+<!-- ================= COMPACT GRADIENT HEADER (MATCH MODULES) ================= -->
+<div class="relative mb-6 overflow-hidden rounded-2xl shadow">
+    <div class="relative h-28 md:h-32">
+
+        <!-- Gradient -->
+        <div class="absolute inset-0 bg-[linear-gradient(110deg,#00b84a_0%,#0b7a46_35%,#064a33_60%,#0a0a0a_100%)]"></div>
+
+        <!-- Soft glow -->
+        <div class="absolute -left-24 -bottom-24 h-[280px] w-[280px]
+                    bg-[radial-gradient(circle_at_center,rgba(0,255,140,0.45)_0%,rgba(0,255,140,0)_60%)]
+                    blur-3xl"></div>
+
+        <div class="absolute left-16 top-4 h-[220px] w-[220px]
+                    bg-[radial-gradient(circle_at_center,rgba(0,200,90,0.22)_0%,rgba(0,200,90,0)_60%)]
+                    blur-3xl"></div>
+
+        <!-- Content -->
+        <div class="relative z-10 flex h-full items-center justify-between px-6 md:px-8">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-white leading-tight">
+                    Manage Students
+                </h1>
+                <p class="mt-1 text-xs md:text-sm text-white/85 max-w-2xl">
+                    View students, enrolments, and update their roles
+                </p>
+            </div>
+
+            <div class="hidden md:flex items-center justify-center
+                        w-9 h-9 rounded-full bg-white/15 text-white text-base">
+                🎓
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- ================= FLASH ================= --}}
 @if(session('success'))
-    <div class="mb-6 rounded-xl bg-green-100 px-6 py-4 text-green-800 shadow">
+    <div class="mb-6 rounded-xl bg-emerald-100 px-6 py-4 text-emerald-900 shadow-sm border border-emerald-200 text-sm">
         {{ session('success') }}
     </div>
 @endif
 
 @if(session('error'))
-    <div class="mb-6 rounded-xl bg-red-100 px-6 py-4 text-red-800 shadow">
+    <div class="mb-6 rounded-xl bg-red-100 px-6 py-4 text-red-800 shadow-sm border border-red-200 text-sm">
         {{ session('error') }}
     </div>
 @endif
 
-{{-- ================= SEARCH ================= --}}
-<form method="GET" class="mb-8 flex max-w-lg items-center gap-3">
+{{-- ================= INSTANT SEARCH (MATCH MODULES STYLE) ================= --}}
+<div class="mb-4 max-w-sm">
     <input
+        id="studentSearch"
         type="text"
-        name="search"
-        value="{{ request('search') }}"
-        placeholder="Search student by name..."
-        class="flex-1 rounded-xl border border-gray-300 px-4 py-2 text-sm
-               focus:outline-none focus:ring-2 focus:ring-gray-300"
-    >
-    <button
-        class="rounded-xl bg-gray-800 px-5 py-2 text-sm font-semibold text-white
-               hover:bg-gray-900 transition">
-        Search
-    </button>
-</form>
+        placeholder="Search student by name or email..."
+        class="w-full rounded-xl border-gray-300 px-4 py-2 text-sm
+               focus:border-emerald-500 focus:ring-emerald-500">
+</div>
 
 {{-- ================= TABLE CARD ================= --}}
-<div class="rounded-3xl bg-gray-100 p-6 shadow-lg">
+<div class="rounded-3xl bg-emerald-50/70 border border-emerald-100 p-6 shadow-sm">
 
-    <div class="overflow-hidden rounded-2xl bg-white">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-100 text-gray-600">
+    <div class="overflow-hidden rounded-2xl bg-white shadow-sm border border-gray-100">
+        <table class="w-full text-sm" id="studentsTable">
+            <thead class="bg-gray-50 text-gray-600">
                 <tr>
-                    <th class="px-6 py-4 text-left">Student</th>
-                    <th class="px-6 py-4 text-left">Role</th>
-                    <th class="px-6 py-4 text-left">Results</th>
-                    <th class="px-6 py-4 text-left">Enrolments</th>
-                    <th class="px-6 py-4 text-left">Actions</th>
+                    <th class="px-6 py-4 text-left font-semibold">Student</th>
+                    <th class="px-6 py-4 text-left font-semibold">Role</th>
+                    <th class="px-6 py-4 text-left font-semibold">Results</th>
+                    <th class="px-6 py-4 text-left font-semibold">Enrolments</th>
+                    <th class="px-6 py-4 text-left font-semibold">Actions</th>
                 </tr>
             </thead>
 
@@ -68,15 +85,14 @@
                     $failed     = $student->modules->where('pivot.status', 'FAIL')->count();
                 @endphp
 
-                {{-- 🔴 NO GREEN HOVER ANYMORE --}}
                 <tr class="hover:bg-gray-50 transition">
 
                     {{-- STUDENT --}}
                     <td class="px-6 py-5">
-                        <div class="font-semibold text-gray-900">
+                        <div class="font-semibold text-gray-900 student-name">
                             {{ $student->name }}
                         </div>
-                        <div class="text-xs text-gray-500">
+                        <div class="text-xs text-gray-500 student-email">
                             {{ $student->email }}
                         </div>
                     </td>
@@ -94,7 +110,7 @@
                     {{-- RESULTS --}}
                     <td class="px-6 py-5 space-x-1">
                         @if($passed)
-                            <span class="rounded bg-green-100 px-2 py-1 text-xs text-green-700">
+                            <span class="rounded bg-emerald-100 px-2 py-1 text-xs text-emerald-700">
                                 {{ $passed }} PASS
                             </span>
                         @endif
@@ -131,7 +147,7 @@
 
                             <select name="role_id"
                                     class="rounded-lg border-gray-300 px-2 py-1 text-sm
-                                           focus:ring-gray-300">
+                                           focus:ring-emerald-500">
                                 @foreach($roles as $role)
                                     <option value="{{ $role->id }}"
                                         {{ $student->user_role_id === $role->id ? 'selected' : '' }}>
@@ -142,15 +158,15 @@
 
                             <button
                                 type="submit"
-                                class="rounded-lg bg-gray-800 px-3 py-1 text-sm text-white
-                                       hover:bg-gray-900">
+                                class="rounded-lg bg-gray-900 px-3 py-1 text-sm text-white
+                                       hover:bg-black transition">
                                 Update
                             </button>
                         </form>
 
                         <a href="{{ route('admin.students.enrolments', $student) }}"
                            class="inline-block rounded-lg bg-gray-200 px-3 py-1 text-sm
-                                  text-gray-800 hover:bg-gray-300">
+                                  text-gray-800 hover:bg-gray-300 transition">
                             View Enrolments
                         </a>
                     </td>
@@ -166,7 +182,20 @@
             </tbody>
         </table>
     </div>
-
 </div>
+
+{{-- ================= SEARCH SCRIPT ================= --}}
+<script>
+document.getElementById('studentSearch').addEventListener('keyup', function () {
+    const value = this.value.toLowerCase();
+
+    document.querySelectorAll('#studentsTable tbody tr').forEach(row => {
+        const name  = row.querySelector('.student-name').innerText.toLowerCase();
+        const email = row.querySelector('.student-email').innerText.toLowerCase();
+
+        row.style.display = (name.includes(value) || email.includes(value)) ? '' : 'none';
+    });
+});
+</script>
 
 @endsection

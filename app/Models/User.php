@@ -16,7 +16,7 @@ class User extends Authenticatable
 
     /*
     |--------------------------------------------------------------------------
-    | Mass assignment
+    | Mass Assignment
     |--------------------------------------------------------------------------
     */
     protected $fillable = [
@@ -28,7 +28,7 @@ class User extends Authenticatable
 
     /*
     |--------------------------------------------------------------------------
-    | Hidden attributes
+    | Hidden Attributes
     |--------------------------------------------------------------------------
     */
     protected $hidden = [
@@ -58,25 +58,43 @@ class User extends Authenticatable
 
     /*
     |--------------------------------------------------------------------------
-    | TEACHER: Modules they teach
+    | =======================
+    | TEACHER RELATIONSHIPS
+    | =======================
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * Active modules taught by teacher
+     * (Archived modules are hidden automatically)
+     */
     public function teachingModules(): BelongsToMany
     {
         return $this->belongsToMany(
             Module::class,
-            'module_teacher',
-            'teacher_id',
+            'module_user',
+            'user_id',
             'module_id'
-        )->withTimestamps();
+        )
+            ->whereNotNull('module_user.teacher_assigned_at')
+            ->where('modules.is_active', true)
+            ->withPivot('teacher_assigned_at')
+            ->withTimestamps();
     }
 
     /*
     |--------------------------------------------------------------------------
-    | STUDENT: Modules enrolled
+    | =======================
+    | STUDENT RELATIONSHIPS
+    | =======================
     |--------------------------------------------------------------------------
     */
-    public function modules(): BelongsToMany
+
+    /**
+     * All enrolled modules (including archived)
+     * ⚠ Used only for internal checks / history
+     */
+    public function allModules(): BelongsToMany
     {
         return $this->belongsToMany(
             Module::class,
@@ -86,10 +104,20 @@ class User extends Authenticatable
         )
         ->withPivot([
             'enrolled_at',
-            'status',        // NULL | PASS | FAIL
             'completed_at',
+            'status', // PASS | FAIL | NULL
         ])
         ->withTimestamps();
+    }
+
+    /**
+     * Active & visible modules for student
+     * (Archived modules are hidden from UI)
+     */
+    public function modules(): BelongsToMany
+    {
+        return $this->allModules()
+            ->where('modules.is_active', true);
     }
 
     /*
@@ -99,7 +127,7 @@ class User extends Authenticatable
     */
 
     /**
-     * Active modules (not yet completed)
+     * Active modules (not completed, not archived)
      */
     public function activeModules()
     {
@@ -109,10 +137,11 @@ class User extends Authenticatable
 
     /**
      * Completed modules (PASS / FAIL)
+     * Includes archived modules for correctness
      */
     public function completedModules()
     {
-        return $this->modules()
+        return $this->allModules()
             ->wherePivotIn('status', ['PASS', 'FAIL']);
     }
 
@@ -126,21 +155,36 @@ class User extends Authenticatable
 
     /*
     |--------------------------------------------------------------------------
-    | AUTO MOVE TO OLD STUDENT
+    | ROLE CHECK HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+    public function isStudent(): bool
+    {
+        return optional($this->role)->role === 'student';
+    }
+
+    public function isTeacher(): bool
+    {
+        return optional($this->role)->role === 'teacher';
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO PROMOTION LOGIC
     |--------------------------------------------------------------------------
     */
 
     /**
-     * Promote student to old_student when all modules are completed
+     * Promote student to old_student
+     * when all modules are completed
      */
     public function checkAndPromoteToOldStudent(): void
     {
-        // Only apply to current students
-        if ($this->role->role !== 'student') {
+        if (! $this->isStudent()) {
             return;
         }
 
-        // No active modules AND has completed modules
         if (
             $this->activeModules()->count() === 0 &&
             $this->completedModules()->count() > 0
