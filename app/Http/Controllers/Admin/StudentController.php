@@ -125,24 +125,28 @@ class StudentController extends Controller
     |--------------------------------------------------------------------------
     */
     public function oldStudents()
-    {
-        $oldStudentRole = UserRole::where('role', 'old_student')->firstOrFail();
+{
+    $oldStudentRole = UserRole::where('role', 'old_student')->firstOrFail();
 
-        $students = User::where('user_role_id', $oldStudentRole->id)
-            ->with([
-                'modules' => function ($q) {
-                    $q->whereNotNull('module_user.completed_at')
-                      ->withPivot([
-                          'status',
-                          'enrolled_at',
-                          'completed_at',
-                      ])
-                      ->orderBy('pivot_completed_at', 'desc');
-                }
-            ])
-            ->orderBy('name')
-            ->get();
+    $students = User::where('user_role_id', $oldStudentRole->id)
+        ->with([
+            'modules' => function ($q) {
+                $q->whereNotNull('module_user.completed_at')
+                  ->withPivot([
+                      'status',
+                      'enrolled_at',
+                      'completed_at',
+                  ])
+                  ->orderBy('pivot_completed_at', 'desc');
+            }
+        ])
+        ->orderBy('name')
+        ->get();
 
-        return view('admin.students.old', compact('students'));
-    }
+    // ✅ ADD THIS (needed by Blade)
+    $roles = UserRole::whereIn('role', ['student', 'old_student'])->get();
+
+    return view('admin.students.old', compact('students', 'roles'));
+}
+
 }

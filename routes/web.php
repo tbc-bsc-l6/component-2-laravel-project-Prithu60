@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
+use App\Http\Controllers\Admin\UserController as AdminUserController; // ✅ ADDED
 
 /*
 |--------------------------------------------------------------------------
@@ -145,6 +146,19 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('/old-students', [AdminStudentController::class, 'oldStudents'])
             ->name('old-students.index');
+
+        /*
+        | ✅ PROMOTE STUDENT → TEACHER (ADDED, NOTHING ELSE TOUCHED)
+        */
+        Route::get(
+            '/users/{user}/promote-teacher',
+            [AdminUserController::class, 'promoteToTeacher']
+        )->name('users.promote-teacher');
+
+        Route::post(
+            '/users/{user}/promote-teacher',
+            [AdminUserController::class, 'storeTeacher']
+        )->name('users.promote-teacher.store');
     });
 
 /*
@@ -191,19 +205,15 @@ Route::middleware(['auth', 'role:student,old_student'])
     ->name('student.')
     ->group(function () {
 
-        // Dashboard
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])
             ->name('dashboard');
 
-        // ✅ Modules list (NEW)
         Route::get('/modules', [StudentModuleController::class, 'index'])
             ->name('modules.index');
 
-        // Enroll (only works for normal students)
         Route::post('/modules/{module}/enroll', [StudentModuleController::class, 'enroll'])
             ->name('modules.enroll');
 
-        // Optional: history page (if you keep it)
         Route::get('/modules/history', [StudentModuleController::class, 'history'])
             ->name('history');
     });
