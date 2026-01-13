@@ -19,12 +19,12 @@ class ModuleController extends Controller
         $modules = Module::withCount([
             'teachers',
 
-            // Active students
+            // Active students (STUDENT ROLE ONLY)
             'students as active_students_count' => function ($q) {
                 $q->whereNull('module_user.completed_at');
             },
 
-            // Completed students
+            // Completed students (STUDENT ROLE ONLY)
             'students as completed_students_count' => function ($q) {
                 $q->whereNotNull('module_user.completed_at');
             },
@@ -126,7 +126,7 @@ class ModuleController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | VIEW STUDENTS IN MODULE
+    | VIEW STUDENTS IN MODULE (STUDENTS ONLY)
     |--------------------------------------------------------------------------
     */
     public function students(Module $module)
@@ -158,6 +158,11 @@ class ModuleController extends Controller
         return view('admin.modules.assign-teachers', compact('module', 'teachers'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | STORE ASSIGNED TEACHERS (FIXED)
+    |--------------------------------------------------------------------------
+    */
     public function storeTeachers(Request $request, Module $module)
     {
         $validated = $request->validate([
@@ -165,7 +170,15 @@ class ModuleController extends Controller
             'teachers.*' => ['exists:users,id'],
         ]);
 
-        $module->teachers()->sync($validated['teachers'] ?? []);
+        $syncData = [];
+
+        foreach ($validated['teachers'] ?? [] as $teacherId) {
+            $syncData[$teacherId] = [
+                'teacher_assigned_at' => now(),
+            ];
+        }
+
+        $module->teachers()->sync($syncData);
 
         return redirect()
             ->route('admin.modules.index')

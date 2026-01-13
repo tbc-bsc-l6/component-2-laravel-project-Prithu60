@@ -35,7 +35,7 @@ class Module extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Students enrolled in this module
+    | Students enrolled in this module (ONLY student role)
     |--------------------------------------------------------------------------
     */
     public function students(): BelongsToMany
@@ -46,6 +46,7 @@ class Module extends Model
             'module_id',
             'user_id'
         )
+        ->where('users.user_role_id', 3) // 👈 STUDENT ROLE ONLY
         ->withPivot([
             'enrolled_at',
             'completed_at',
