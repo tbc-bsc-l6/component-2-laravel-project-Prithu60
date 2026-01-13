@@ -12,15 +12,15 @@ class UserController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | SHOW MODULE SELECTION PAGE (Student/Old Student -> Teacher)
+    | SHOW MODULE SELECTION PAGE (Student / Old Student → Teacher)
     |--------------------------------------------------------------------------
     */
     public function promoteToTeacher(User $user)
     {
-        // ✅ Allow BOTH student and old_student
         $currentRole = optional($user->role)->role;
 
-        if (!in_array($currentRole, ['student', 'old_student'], true)) {
+        // Only students or old students can be promoted
+        if (! in_array($currentRole, ['student', 'old_student'], true)) {
             abort(403);
         }
 
@@ -38,10 +38,10 @@ class UserController extends Controller
     */
     public function storeTeacher(Request $request, User $user)
     {
-        // ✅ Allow BOTH student and old_student
         $currentRole = optional($user->role)->role;
 
-        if (!in_array($currentRole, ['student', 'old_student'], true)) {
+        // Safety check
+        if (! in_array($currentRole, ['student', 'old_student'], true)) {
             abort(403);
         }
 
@@ -52,12 +52,16 @@ class UserController extends Controller
 
         $teacherRole = UserRole::where('role', 'teacher')->firstOrFail();
 
-        // 1) Change role to teacher
+        /*
+         | 1) Change role to teacher
+         */
         $user->update([
             'user_role_id' => $teacherRole->id,
         ]);
 
-        // 2) Assign modules as teacher
+        /*
+         | 2) Assign modules as teacher
+         */
         $syncData = [];
         foreach ($request->modules as $moduleId) {
             $syncData[$moduleId] = [
@@ -69,6 +73,38 @@ class UserController extends Controller
 
         return redirect()
             ->route('admin.teachers.index')
-            ->with('success', 'User promoted to Teacher and modules assigned successfully.');
+            ->with('success', 'User promoted to Teacher successfully.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DEMOTE: TEACHER → STUDENT
+    |--------------------------------------------------------------------------
+    */
+    public function demoteToStudent(User $user)
+    {
+        // Only teachers can be demoted
+        if (optional($user->role)->role !== 'teacher') {
+            abort(403);
+        }
+
+        $studentRole = UserRole::where('role', 'student')->firstOrFail();
+
+        /*
+         | 1) Remove teacher assignments safely
+         */
+        $user->teachingModules()->detach();
+
+        /*
+         | 2) Change role back to student
+         */
+        $user->update([
+            'user_role_id' => $studentRole->id,
+        ]);
+
+        return back()->with(
+            'success',
+            'Teacher successfully changed back to Student.'
+        );
     }
 }

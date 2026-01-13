@@ -1,117 +1,78 @@
-<?php
-
-use App\Models\User;
-use App\Models\UserRole;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
-use Livewire\Attributes\Layout;
-use Livewire\Volt\Component;
-
-new #[Layout('layouts.guest')] class extends Component
-{
-    public string $name = '';
-    public string $email = '';
-    public string $password = '';
-    public string $password_confirmation = '';
-
-    public function register(): void
-    {
-        $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
-
-        // Hash password
-        $validated['password'] = Hash::make($validated['password']);
-
-        // ✅ FIXED: use correct column name `role`
-        $studentRole = UserRole::where('role', 'student')->firstOrFail();
-        $validated['user_role_id'] = $studentRole->id;
-
-        // Create user
-        $user = User::create($validated);
-
-        event(new Registered($user));
-
-        // Ensure correct session
-        Auth::logout();
-        Auth::login($user);
-
-        // Redirect to role-based dashboard
-        $this->redirect('/dashboard');
-    }
-};
-?>
-
 <div>
-    <form wire:submit.prevent="register" class="space-y-4">
+    <div class="rounded-3xl bg-white/15 backdrop-blur-xl shadow-2xl px-8 py-10">
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" value="Name" />
-            <x-text-input
-                wire:model="name"
-                id="name"
-                type="text"
-                class="block mt-1 w-full"
-                required
-                autofocus
-            />
-            <x-input-error :messages="$errors->get('name')" />
+        <h1 class="text-4xl font-extrabold text-white text-center tracking-wide">
+            Edu World
+        </h1>
+
+        <div class="mt-5 flex justify-center">
+            <div class="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-9 w-9 text-indigo-200"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor"
+                     stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M16 14a4 4 0 10-8 0m8 0v1a4 4 0 01-8 0v-1m8 0a6 6 0 01-8 0" />
+                </svg>
+            </div>
         </div>
 
-        <!-- Email -->
-        <div>
-            <x-input-label for="email" value="Email" />
-            <x-text-input
-                wire:model="email"
-                id="email"
-                type="email"
-                class="block mt-1 w-full"
-                required
-            />
-            <x-input-error :messages="$errors->get('email')" />
-        </div>
+        {{-- ✅ MUST MATCH submit() METHOD --}}
+        <form wire:submit.prevent="submit" class="mt-8 space-y-5">
 
-        <!-- Password -->
-        <div>
-            <x-input-label for="password" value="Password" />
-            <x-text-input
-                wire:model="password"
-                id="password"
-                type="password"
-                class="block mt-1 w-full"
-                required
-            />
-            <x-input-error :messages="$errors->get('password')" />
-        </div>
+            <div>
+                <x-input-label value="Name" class="text-white font-semibold" />
+                <x-text-input
+                    wire:model.defer="name"
+                    class="mt-2 w-full rounded-xl bg-white/90"
+                    type="text"
+                    placeholder="Enter name" />
+                <x-input-error :messages="$errors->get('name')" />
+            </div>
 
-        <!-- Confirm Password -->
-        <div>
-            <x-input-label for="password_confirmation" value="Confirm Password" />
-            <x-text-input
-                wire:model="password_confirmation"
-                id="password_confirmation"
-                type="password"
-                class="block mt-1 w-full"
-                required
-            />
-        </div>
+            <div>
+                <x-input-label value="Email" class="text-white font-semibold" />
+                <x-text-input
+                    wire:model.defer="email"
+                    class="mt-2 w-full rounded-xl bg-white/90"
+                    type="email"
+                    placeholder="Enter email" />
+                <x-input-error :messages="$errors->get('email')" />
+            </div>
 
-        <!-- Actions -->
-        <div class="flex items-center justify-end">
-            <a href="{{ route('login') }}"
-               class="text-sm underline text-gray-600 hover:text-gray-900">
+            <div>
+                <x-input-label value="Password" class="text-white font-semibold" />
+                <x-text-input
+                    wire:model.defer="password"
+                    class="mt-2 w-full rounded-xl bg-white/90"
+                    type="password"
+                    placeholder="Enter password" />
+                <x-input-error :messages="$errors->get('password')" />
+            </div>
+
+            <div>
+                <x-input-label value="Confirm Password" class="text-white font-semibold" />
+                <x-text-input
+                    wire:model.defer="password_confirmation"
+                    class="mt-2 w-full rounded-xl bg-white/90"
+                    type="password"
+                    placeholder="Confirm password" />
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">
+                REGISTER
+            </button>
+
+            <p class="text-center text-white text-sm">
                 Already registered?
-            </a>
+                <a href="{{ route('login') }}" class="underline font-semibold">
+                    Log in
+                </a>
+            </p>
 
-            <x-primary-button class="ms-4">
-                Register
-            </x-primary-button>
-        </div>
-
-    </form>
+        </form>
+    </div>
 </div>

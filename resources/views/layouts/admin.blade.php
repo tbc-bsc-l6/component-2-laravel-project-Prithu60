@@ -18,7 +18,7 @@
 
         <!-- LOGO -->
         <div class="px-6 py-5 text-xl font-bold border-b border-white/10">
-            📊 SM Info
+            📊 Edu World
         </div>
 
         <!-- NAV -->

@@ -13,7 +13,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModuleController as AdminModuleController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
-use App\Http\Controllers\Admin\UserController as AdminUserController; // ✅ ADDED
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,11 +66,21 @@ Route::middleware('auth')->get('/dashboard', function () {
     return match (auth()->user()->role->role) {
         'admin'       => redirect()->route('admin.dashboard'),
         'teacher'     => redirect()->route('teacher.dashboard'),
-        'student',
-        'old_student' => redirect()->route('student.dashboard'),
+        'student'     => redirect()->route('student.dashboard'),
+        'old_student' => redirect()->route('student.modules.completed'),
         default       => abort(403),
     };
 })->name('dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| 🔐 OLD STUDENT SAFETY REDIRECT
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:old_student'])
+    ->get('/student/dashboard', function () {
+        return redirect()->route('student.modules.completed');
+    });
 
 /*
 |--------------------------------------------------------------------------
@@ -85,9 +95,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
 
-        /*
-        | Modules
-        */
         Route::get('/modules', [AdminModuleController::class, 'index'])
             ->name('modules.index');
 
@@ -103,8 +110,11 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/modules/{module}', [AdminModuleController::class, 'destroy'])
             ->name('modules.destroy');
 
-        Route::patch('/modules/{module}/toggle', [AdminModuleController::class, 'toggle'])
-            ->name('modules.toggle');
+        // ✅ ARCHIVE / UNARCHIVE (FIXED)
+        Route::patch(
+            '/modules/{module}/toggle-status',
+            [AdminModuleController::class, 'toggleStatus']
+        )->name('modules.toggle-status');
 
         Route::get('/modules/{module}/students', [AdminModuleController::class, 'students'])
             ->name('modules.students');
@@ -115,9 +125,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('/modules/{module}/assign-teachers', [AdminModuleController::class, 'storeTeachers'])
             ->name('modules.assign-teachers.store');
 
-        /*
-        | Teachers
-        */
         Route::get('/teachers', [TeacherController::class, 'index'])
             ->name('teachers.index');
 
@@ -127,9 +134,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::delete('/teachers/{user}', [TeacherController::class, 'destroy'])
             ->name('teachers.destroy');
 
-        /*
-        | Students
-        */
         Route::get('/students', [AdminStudentController::class, 'index'])
             ->name('students.index');
 
@@ -147,9 +151,6 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/old-students', [AdminStudentController::class, 'oldStudents'])
             ->name('old-students.index');
 
-        /*
-        | ✅ PROMOTE STUDENT → TEACHER (ADDED, NOTHING ELSE TOUCHED)
-        */
         Route::get(
             '/users/{user}/promote-teacher',
             [AdminUserController::class, 'promoteToTeacher']
@@ -159,6 +160,11 @@ Route::middleware(['auth', 'role:admin'])
             '/users/{user}/promote-teacher',
             [AdminUserController::class, 'storeTeacher']
         )->name('users.promote-teacher.store');
+
+        Route::patch(
+            '/users/{user}/demote-student',
+            [AdminUserController::class, 'demoteToStudent']
+        )->name('users.demote-student');
     });
 
 /*
@@ -197,10 +203,10 @@ Route::middleware(['auth', 'role:teacher'])
 
 /*
 |--------------------------------------------------------------------------
-| STUDENT ROUTES (CURRENT + OLD)
+| STUDENT ROUTES — ACTIVE STUDENT
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:student,old_student'])
+Route::middleware(['auth', 'role:student'])
     ->prefix('student')
     ->name('student.')
     ->group(function () {
@@ -216,6 +222,20 @@ Route::middleware(['auth', 'role:student,old_student'])
 
         Route::get('/modules/history', [StudentModuleController::class, 'history'])
             ->name('history');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| STUDENT ROUTES — OLD STUDENT
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:old_student'])
+    ->prefix('student')
+    ->name('student.')
+    ->group(function () {
+
+        Route::get('/modules/completed', [StudentModuleController::class, 'completed'])
+            ->name('modules.completed');
     });
 
 /*

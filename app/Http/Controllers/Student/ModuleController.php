@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class ModuleController extends Controller
 {
     /**
-     * Show all modules for student (enroll page)
+     * Show all modules for ACTIVE students (enroll page)
      */
     public function index()
     {
@@ -40,11 +40,16 @@ class ModuleController extends Controller
     }
 
     /**
-     * Enroll student in a module
+     * Enroll student in a module (ACTIVE students only)
      */
     public function enroll(Module $module)
     {
         $student = auth()->user();
+
+        // ❌ Old students cannot enroll
+        if ($student->role->role === 'old_student') {
+            abort(403);
+        }
 
         // Already enrolled
         if ($student->modules()->where('modules.id', $module->id)->exists()) {
@@ -52,7 +57,7 @@ class ModuleController extends Controller
         }
 
         // Module inactive
-        if (!$module->is_active) {
+        if (! $module->is_active) {
             return back()->with('error', 'Enrollment for this module is closed.');
         }
 
@@ -75,5 +80,24 @@ class ModuleController extends Controller
         ]);
 
         return back()->with('success', 'Successfully enrolled in ' . $module->name);
+    }
+
+    /**
+     * ✅ COMPLETED MODULES (OLD STUDENTS ONLY)
+     */
+    public function completed()
+    {
+        $student = auth()->user();
+
+        // Safety check
+        if ($student->role->role !== 'old_student') {
+            abort(403);
+        }
+
+        $completedModules = $student->modules()
+            ->wherePivotNotNull('completed_at')
+            ->get();
+
+        return view('student.modules.completed', compact('completedModules'));
     }
 }

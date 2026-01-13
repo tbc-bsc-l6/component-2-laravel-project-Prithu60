@@ -1,36 +1,68 @@
-<div class="max-w-md mx-auto mt-10">
-    <form wire:submit.prevent="login" class="space-y-6">
+<div>
+    <div class="rounded-3xl bg-white/15 backdrop-blur-xl shadow-2xl px-8 py-10">
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email"
-                   wire:model.defer="form.email"
-                   class="mt-1 block w-full border-gray-300 rounded-md"
-                   required autofocus>
-            @error('form.email')
-                <span class="text-sm text-red-600">{{ $message }}</span>
-            @enderror
+        <h1 class="text-4xl font-extrabold text-white text-center tracking-wide">
+            Edu World
+        </h1>
+
+        <div class="mt-5 flex justify-center">
+            <div class="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-9 w-9 text-indigo-200"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor"
+                     stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 11c0 1.657-1.343 3-3 3s-3-1.343-3-3
+                             1.343-3 3-3 3 1.343 3 3z
+                             M19.4 15a7.97 7.97 0 01-6.4 3
+                             7.97 7.97 0 01-6.4-3" />
+                </svg>
+            </div>
         </div>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password"
-                   wire:model.defer="form.password"
-                   class="mt-1 block w-full border-gray-300 rounded-md"
-                   required>
-            @error('form.password')
-                <span class="text-sm text-red-600">{{ $message }}</span>
-            @enderror
-        </div>
+        {{-- ✅ MUST MATCH submit() --}}
+        <form wire:submit.prevent="submit" class="mt-8 space-y-5">
 
-        <div class="flex items-center">
-            <input type="checkbox" wire:model="form.remember" class="mr-2">
-            <span class="text-sm text-gray-600">Remember me</span>
-        </div>
+            <div>
+                <x-input-label value="Email" class="text-white font-semibold" />
+                <x-text-input
+                    wire:model.defer="email"
+                    class="mt-2 w-full rounded-xl bg-white/90"
+                    type="email"
+                    placeholder="Enter email" />
+                <x-input-error :messages="$errors->get('email')" />
+            </div>
 
-        <button type="submit"
-                class="w-full bg-black text-white py-2 rounded">
-            Log in
-        </button>
-    </form>
+            <div>
+                <x-input-label value="Password" class="text-white font-semibold" />
+                <x-text-input
+                    wire:model.defer="password"
+                    class="mt-2 w-full rounded-xl bg-white/90"
+                    type="password"
+                    placeholder="Enter password" />
+                <x-input-error :messages="$errors->get('password')" />
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">
+                LOGIN
+            </button>
+
+            <p class="text-center text-white text-sm">
+                Don’t have an account?
+                <a href="{{ route('register') }}" class="underline font-semibold">
+                    Register
+                </a>
+            </p>
+
+            <p class="text-center text-white text-sm">
+                <a href="{{ route('password.request') }}" class="underline">
+                    Forgot your password?
+                </a>
+            </p>
+
+        </form>
+    </div>
 </div>

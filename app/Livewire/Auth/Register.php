@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Http\Livewire\Pages\Auth;
+namespace App\Livewire\Auth;
 
+use Livewire\Component;
 use App\Models\User;
 use App\Models\UserRole;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\Rules;
-use Livewire\Component;
-use Livewire\Attributes\Layout;
 
-#[Layout('layouts.guest')]
 class Register extends Component
 {
     public string $name = '';
@@ -19,37 +17,25 @@ class Register extends Component
     public string $password = '';
     public string $password_confirmation = '';
 
-    /**
-     * Handle registration form submission.
-     */
-    public function register(): void
+    public function submit(): void
     {
-        // Validate input
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Hash password
         $validated['password'] = Hash::make($validated['password']);
 
-        // Assign default "student" role
-        $studentRole = UserRole::where('name', 'student')->first();
-        if (!$studentRole) {
-            abort(500, 'Student role not found. Please create it first.');
-        }
-        $validated['user_role_id'] = $studentRole->id;
+        $role = UserRole::where('role', 'student')->firstOrFail();
+        $validated['user_role_id'] = $role->id;
 
-        // Create user and fire registered event
         $user = User::create($validated);
-        event(new Registered($user));
 
-        // Login the new user
+        event(new Registered($user));
         Auth::login($user);
 
-        // Redirect to dashboard
-        $this->redirect(route('dashboard'));
+        $this->redirect(route('dashboard'), navigate: true);
     }
 
     public function render()

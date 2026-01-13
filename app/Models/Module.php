@@ -2,16 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\User;
 
 class Module extends Model
 {
+    use HasFactory;
+
     protected $guarded = [];
 
     public const MAX_STUDENTS = 10;
 
+    /*
+    |--------------------------------------------------------------------------
+    | Teachers assigned to this module
+    |--------------------------------------------------------------------------
+    */
     public function teachers(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -25,6 +33,11 @@ class Module extends Model
         ->withTimestamps();
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Students enrolled in this module
+    |--------------------------------------------------------------------------
+    */
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -33,7 +46,6 @@ class Module extends Model
             'module_id',
             'user_id'
         )
-        ->whereNotNull('module_user.enrolled_at')
         ->withPivot([
             'enrolled_at',
             'completed_at',
@@ -42,9 +54,15 @@ class Module extends Model
         ->withTimestamps();
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Helper methods (used across app)
+    |--------------------------------------------------------------------------
+    */
     public function activeStudentsCount(): int
     {
         return $this->students()
+            ->wherePivotNotNull('enrolled_at')
             ->wherePivotNull('completed_at')
             ->count();
     }

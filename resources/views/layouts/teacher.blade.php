@@ -22,7 +22,7 @@
                 SM
             </div>
             <div>
-                <div class="font-semibold leading-tight">SM Info</div>
+                <div class="font-semibold leading-tight">Edu World</div>
                 <div class="text-xs text-white/60">Teacher Panel</div>
             </div>
         </div>

@@ -24,11 +24,11 @@ class DashboardController extends Controller
         // ======================
         if ($role === 'old_student') {
             return view('student.dashboard', [
-                'completedModules' => $completedModules,
-                'enrolledModules'  => collect(),
-                'modules'          => collect(),
-                'activeCount'      => 0,
-                'enrolledModuleIds'=> [],
+                'completedModules'     => $completedModules,
+                'enrolledModules'      => collect(),
+                'modules'              => collect(),
+                'activeCount'          => 0,
+                'enrolledModuleIds'    => [],
             ]);
         }
 
@@ -43,9 +43,10 @@ class DashboardController extends Controller
 
         $enrolledModuleIds = $enrolledModules->pluck('id')->toArray();
 
+        // ✅ FIXED: use students(), NOT users()
         $modules = Module::withCount([
-            'users as enrolled_students_count' => function ($q) {
-                $q->whereNull('completed_at');
+            'students as enrolled_students_count' => function ($q) {
+                $q->wherePivotNull('completed_at');
             }
         ])
         ->where('is_active', true)

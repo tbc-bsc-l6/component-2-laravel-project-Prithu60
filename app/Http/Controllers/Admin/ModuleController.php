@@ -19,12 +19,12 @@ class ModuleController extends Controller
         $modules = Module::withCount([
             'teachers',
 
-            // ✅ ACTIVE students (count towards capacity)
+            // Active students
             'students as active_students_count' => function ($q) {
                 $q->whereNull('module_user.completed_at');
             },
 
-            // ✅ COMPLETED students (PASS / FAIL)
+            // Completed students
             'students as completed_students_count' => function ($q) {
                 $q->whereNotNull('module_user.completed_at');
             },
@@ -96,7 +96,6 @@ class ModuleController extends Controller
     {
         $module->teachers()->detach();
         $module->students()->detach();
-
         $module->delete();
 
         return redirect()
@@ -106,10 +105,10 @@ class ModuleController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | TOGGLE MODULE ACTIVE / INACTIVE
+    | TOGGLE MODULE ACTIVE / ARCHIVED
     |--------------------------------------------------------------------------
     */
-    public function toggle(Module $module)
+    public function toggleStatus(Module $module)
     {
         $module->update([
             'is_active' => ! $module->is_active,
@@ -117,12 +116,17 @@ class ModuleController extends Controller
 
         return redirect()
             ->route('admin.modules.index')
-            ->with('success', 'Module status updated.');
+            ->with(
+                'success',
+                $module->is_active
+                    ? 'Module unarchived successfully.'
+                    : 'Module archived successfully.'
+            );
     }
 
     /*
     |--------------------------------------------------------------------------
-    | VIEW STUDENTS IN MODULE (ADMIN)
+    | VIEW STUDENTS IN MODULE
     |--------------------------------------------------------------------------
     */
     public function students(Module $module)
@@ -142,7 +146,7 @@ class ModuleController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | ASSIGN TEACHERS TO MODULE (ADMIN)
+    | ASSIGN TEACHERS
     |--------------------------------------------------------------------------
     */
     public function assignTeachers(Module $module)

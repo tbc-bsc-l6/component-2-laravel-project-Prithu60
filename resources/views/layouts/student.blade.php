@@ -28,32 +28,53 @@
         <div class="px-6 py-4 border-b border-white/10">
             <p class="text-xs text-white/60">Logged in as</p>
             <p class="font-semibold">
-                @auth
-                    {{ auth()->user()->name }}
-                @endauth
+                {{ auth()->user()->name }}
             </p>
         </div>
+
+        @php
+            $role = optional(auth()->user()->role)->role;
+        @endphp
 
         <!-- NAV -->
         <nav class="flex-1 px-4 py-4 space-y-2 text-[15px] font-medium">
 
-            <!-- Dashboard -->
-            <a href="{{ route('student.dashboard') }}"
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition
-               {{ request()->routeIs('student.dashboard')
-                    ? 'bg-white text-gray-900'
-                    : 'hover:bg-white/10 text-white' }}">
-                🏠 Dashboard
-            </a>
+            {{-- ================= CURRENT STUDENT ONLY ================= --}}
+            @if($role === 'student')
 
-            <!-- Modules -->
-            <a href="{{ route('student.modules.index') }}"
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition
-               {{ request()->routeIs('student.modules.*')
-                    ? 'bg-white text-gray-900'
-                    : 'hover:bg-white/10 text-white' }}">
-                📚 Modules
-            </a>
+                <!-- DASHBOARD -->
+                <a href="{{ route('student.dashboard') }}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl transition
+                   {{ request()->routeIs('student.dashboard')
+                        ? 'bg-white text-gray-900'
+                        : 'hover:bg-white/10 text-white' }}">
+                    🏠 Dashboard
+                </a>
+
+                <!-- MODULES -->
+                <a href="{{ route('student.modules.index') }}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl transition
+                   {{ request()->routeIs('student.modules.*')
+                        ? 'bg-white text-gray-900'
+                        : 'hover:bg-white/10 text-white' }}">
+                    📚 Modules
+                </a>
+
+            @endif
+
+            {{-- ================= OLD STUDENT ONLY ================= --}}
+            @if($role === 'old_student')
+
+                <!-- COMPLETED MODULES -->
+                <a href="{{ route('student.modules.completed') }}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl transition
+                   {{ request()->routeIs('student.modules.completed')
+                        ? 'bg-white text-gray-900'
+                        : 'hover:bg-white/10 text-white' }}">
+                    🎓 Completed Modules
+                </a>
+
+            @endif
 
         </nav>
 

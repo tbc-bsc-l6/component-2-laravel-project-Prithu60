@@ -29,7 +29,7 @@
 </div>
 
 <!-- ================= STATS ================= -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
 
     <!-- ASSIGNED MODULES -->
     <div class="rounded-2xl bg-white p-6 shadow border border-black/5">
@@ -66,8 +66,33 @@
 
 </div>
 
+<!-- ================= CHARTS ================= -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+
+    <!-- STUDENT STATUS CHART -->
+    <div class="bg-white rounded-2xl shadow border border-emerald-200 p-4">
+        <h3 class="text-sm font-semibold text-slate-700 mb-4">
+            Student Status
+        </h3>
+        <div class="h-32">
+            <canvas id="studentStatusChart"></canvas>
+        </div>
+    </div>
+
+    <!-- MODULES OVERVIEW CHART -->
+    <div class="bg-white rounded-2xl shadow border border-emerald-200 p-4">
+        <h3 class="text-sm font-semibold text-slate-700 mb-4">
+            Students per Module
+        </h3>
+        <div class="h-32">
+            <canvas id="modulesChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
 <!-- ================= ACTION ================= -->
-<div class="mt-10">
+<div class="mt-4">
     <a href="{{ route('teacher.modules.index') }}"
        class="inline-flex items-center gap-3
               px-6 py-4 rounded-xl
@@ -77,5 +102,65 @@
         📚 View My Modules
     </a>
 </div>
+
+<!-- ================= CHART.JS ================= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+/* -------- STUDENT STATUS -------- */
+new Chart(document.getElementById('studentStatusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Active', 'Completed'],
+        datasets: [{
+            data: [
+                {{ auth()->user()->teachingModules()
+                        ->withCount(['students as active_students_count' => function ($q) {
+                            $q->whereNull('completed_at');
+                        }])->get()->sum('active_students_count') }},
+                {{ auth()->user()->teachingModules()
+                        ->withCount(['students as completed_students_count' => function ($q) {
+                            $q->whereNotNull('completed_at');
+                        }])->get()->sum('completed_students_count') }}
+            ],
+            backgroundColor: ['#22c55e', '#a3e635'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        cutout: '70%',
+        plugins: { legend: { position: 'bottom' } },
+        maintainAspectRatio: false
+    }
+});
+
+/* -------- MODULES OVERVIEW -------- */
+new Chart(document.getElementById('modulesChart'), {
+    type: 'bar',
+    data: {
+        labels: [
+            @foreach(auth()->user()->teachingModules as $m)
+                "{{ $m->name }}",
+            @endforeach
+        ],
+        datasets: [{
+            data: [
+                @foreach(auth()->user()->teachingModules as $m)
+                    {{ $m->students()->count() }},
+                @endforeach
+            ],
+            backgroundColor: '#84cc16',
+            borderRadius: 8
+        }]
+    },
+    options: {
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+        },
+        maintainAspectRatio: false
+    }
+});
+</script>
 
 @endsection

@@ -79,6 +79,32 @@ class TeacherController extends Controller
 
     /*
     |--------------------------------------------------------------------------
+    | DEMOTE TEACHER → STUDENT  ✅ NEW
+    |--------------------------------------------------------------------------
+    */
+    public function demoteToStudent(User $user)
+    {
+        // Safety check
+        if ($user->role->role !== 'teacher') {
+            return back()->with('error', 'User is not a teacher.');
+        }
+
+        // Remove teaching assignments
+        $user->teachingModules()->detach();
+
+        // Assign student role
+        $studentRole = UserRole::where('role', 'student')->firstOrFail();
+        $user->update([
+            'user_role_id' => $studentRole->id,
+        ]);
+
+        return redirect()
+            ->route('admin.teachers.index')
+            ->with('success', 'Teacher has been changed to Student.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | DELETE TEACHER
     |--------------------------------------------------------------------------
     */

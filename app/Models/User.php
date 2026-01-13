@@ -126,28 +126,18 @@ class User extends Authenticatable
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Active modules (not completed, not archived)
-     */
     public function activeModules()
     {
         return $this->modules()
             ->wherePivotNull('completed_at');
     }
 
-    /**
-     * Completed modules (PASS / FAIL)
-     * Includes archived modules for correctness
-     */
     public function completedModules()
     {
         return $this->allModules()
             ->wherePivotIn('status', ['PASS', 'FAIL']);
     }
 
-    /**
-     * Can student enrol in more modules?
-     */
     public function canEnroll(): bool
     {
         return $this->activeModules()->count() < 4;
@@ -155,7 +145,7 @@ class User extends Authenticatable
 
     /*
     |--------------------------------------------------------------------------
-    | ROLE CHECK HELPERS
+    | ROLE CHECK HELPERS  ✅ IMPROVED
     |--------------------------------------------------------------------------
     */
 
@@ -164,9 +154,19 @@ class User extends Authenticatable
         return optional($this->role)->role === 'student';
     }
 
+    public function isOldStudent(): bool
+    {
+        return optional($this->role)->role === 'old_student';
+    }
+
     public function isTeacher(): bool
     {
         return optional($this->role)->role === 'teacher';
+    }
+
+    public function isAdmin(): bool
+    {
+        return optional($this->role)->role === 'admin';
     }
 
     /*
